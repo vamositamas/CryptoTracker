@@ -46,6 +46,38 @@ async function readTrades(trader: string): Promise<RawTrade[]> {
   }
 }
 
+/**
+ * Returns another trader id if the trade id exists outside the current trader scope.
+ * Used to distinguish 403 (belongs to someone else) from 404 (missing entirely).
+ */
+async function findTradeOwnerInOtherTrader(tradeId: string, currentTrader: string): Promise<string | null> {
+  const dataDir = process.env['DATA_DIR'] ?? path.join(__dirname, '../../data');
+  const tradersDir = path.join(path.resolve(dataDir), 'traders');
+
+  try {
+    const entries = await fs.readdir(tradersDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name === currentTrader) continue;
+
+      const filePath = path.join(tradersDir, entry.name, 'trades.json');
+      try {
+        const raw = await fs.readFile(filePath, 'utf-8');
+        const trades = JSON.parse(raw) as RawTrade[];
+        if (trades.some((t) => String(t.id) === tradeId)) {
+          return entry.name;
+        }
+      } catch {
+        // Ignore missing/corrupt files for non-target traders
+      }
+    }
+  } catch {
+    // Ignore if traders dir is missing
+  }
+
+  return null;
+}
+
 // --- GET /api/v1/trades ---
 router.get('/', async (req: Request, res: Response) => {
   const { trader } = req as TraderRequest;
@@ -123,6 +155,13 @@ router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
   const existing = await readTrades(trader);
   const idx = existing.findIndex((t) => String(t.id) === tradeId);
   if (idx === -1) {
+    const owner = await findTradeOwnerInOtherTrader(tradeId, trader);
+    if (owner) {
+      res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'You cannot modify another trader\'s trade' },
+      });
+      return;
+    }
     res.status(404).json({
       error: { code: 'NOT_FOUND', message: 'Trade not found', field: 'id' },
     });
@@ -154,6 +193,48 @@ router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
 
   const enriched = formulaService.applyAll(updatedRaw);
   res.status(200).json(enriched);
+});
+
+// --- DELETE /api/v1/trades/:id ---
+router.delete('/:id', auditMiddleware, async (req: Request, res: Response) => {
+  const { trader } = req as TraderRequest;
+  const tradeId = req.params['id'];
+
+  if (!tradeId) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Trade id is required', field: 'id' },
+    });
+    return;
+  }
+
+  await ensureTraderDir(trader);
+  const existing = await readTrades(trader);
+  const idx = existing.findIndex((t) => String(t.id) === tradeId);
+
+  if (idx === -1) {
+    const owner = await findTradeOwnerInOtherTrader(tradeId, trader);
+    if (owner) {
+      res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'You cannot delete another trader\'s trade' },
+      });
+      return;
+    }
+
+    res.status(404).json({
+      error: { code: 'NOT_FOUND', message: 'Trade not found', field: 'id' },
+    });
+    return;
+  }
+
+  const previous = existing[idx];
+  const nextTrades = existing.filter((t) => String(t.id) !== tradeId);
+  await storageService.write(`traders/${trader}/trades.json`, nextTrades);
+
+  // DELETE audit must include full snapshot as previousValue and null newValue.
+  res.locals['auditPreviousValue'] = previous;
+  res.locals['auditRecord'] = previous;
+
+  res.status(200).json({ deleted: true, id: tradeId });
 });
 
 export default router;

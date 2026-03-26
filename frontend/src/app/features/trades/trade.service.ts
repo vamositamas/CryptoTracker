@@ -98,4 +98,25 @@ export class TradeService {
       throw err;
     }
   }
+
+  async deleteTrade(id: string): Promise<void> {
+    const snapshot = this.trades();
+    const target = snapshot.find((t) => t.id === id);
+    if (!target) {
+      this.error.set('Trade not found. Please refresh and try again.');
+      return;
+    }
+
+    this.error.set(null);
+    this.trades.update((ts) => ts.filter((t) => t.id !== id));
+
+    try {
+      await this.api.deleteTrade(id);
+    } catch (err) {
+      this.trades.set(snapshot);
+      const message = err instanceof Error ? err.message : 'Failed to delete trade. Please try again.';
+      this.error.set(message);
+      throw err;
+    }
+  }
 }

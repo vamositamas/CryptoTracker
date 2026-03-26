@@ -49,4 +49,15 @@ export class TradeApiService {
       throw err;
     }
   }
+
+  async deleteTrade(id: string): Promise<void> {
+    try {
+      await firstValueFrom(this.http.delete<{ deleted: boolean; id: string }>(`/api/v1/trades/${id}`));
+    } catch (err) {
+      if (err instanceof HttpErrorResponse && err.error?.error) {
+        throw new TradeApiError(err.error.error as ApiError, err.status);
+      }
+      throw err;
+    }
+  }
 }

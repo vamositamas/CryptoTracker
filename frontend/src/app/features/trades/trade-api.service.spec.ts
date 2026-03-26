@@ -141,4 +141,23 @@ describe('TradeApiService', () => {
       await expect(promise).rejects.toBeInstanceOf(TradeApiError);
     });
   });
+
+  describe('deleteTrade', () => {
+    it('DELETEs /api/v1/trades/:id and resolves on success', async () => {
+      const promise = service.deleteTrade('trade-1');
+      const req = httpTesting.expectOne('/api/v1/trades/trade-1');
+      expect(req.request.method).toBe('DELETE');
+      req.flush({ deleted: true, id: 'trade-1' }, { status: 200, statusText: 'OK' });
+      await expect(promise).resolves.toBeUndefined();
+    });
+
+    it('throws TradeApiError on 403', async () => {
+      const apiError = { code: 'FORBIDDEN', message: 'You cannot delete another trader\'s trade' };
+      const promise = service.deleteTrade('trade-1');
+      httpTesting
+        .expectOne('/api/v1/trades/trade-1')
+        .flush({ error: apiError }, { status: 403, statusText: 'Forbidden' });
+      await expect(promise).rejects.toBeInstanceOf(TradeApiError);
+    });
+  });
 });

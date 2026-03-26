@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { storageService } from '../services/storage.service';
+import * as fs from 'fs/promises';
 
 vi.mock('../services/storage.service', () => ({
   storageService: { read: vi.fn(), write: vi.fn() },
@@ -24,6 +25,8 @@ vi.mock('../middleware/trader.middleware', () => ({
 
 vi.mock('fs/promises', () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
+  readdir: vi.fn().mockResolvedValue([]),
+  readFile: vi.fn().mockResolvedValue('[]'),
 }));
 
 // Import AFTER mocks are declared
@@ -171,6 +174,7 @@ describe('PUT /:id', () => {
 
   it('returns 404 when trade does not exist', async () => {
     vi.mocked(storageService.read).mockResolvedValue([]);
+    vi.mocked(fs.readdir).mockResolvedValue([] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
 
     const res = await request(app)
       .put('/missing-id')
@@ -179,6 +183,22 @@ describe('PUT /:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('returns 403 when trade belongs to another trader', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([]);
+    vi.mocked(fs.readdir).mockResolvedValue([
+      { name: 'other-trader', isDirectory: () => true },
+    ] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
+    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify([{ ...MOCK_RAW_TRADE, id: 'other-id' }]));
+
+    const res = await request(app)
+      .put('/other-id')
+      .set('x-trader-username', 'tamas')
+      .send(updateBody);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 
   it('returns 400 VALIDATION_ERROR when update payload is invalid', async () => {
@@ -214,5 +234,53 @@ describe('PUT /:id', () => {
         }),
       ]),
     );
+  });
+});
+
+describe('DELETE /:id', () => {
+  beforeEach(() => {
+    vi.mocked(storageService.write).mockResolvedValue(undefined);
+    vi.mocked(fs.readdir).mockResolvedValue([] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
+    vi.mocked(fs.readFile).mockResolvedValue('[]');
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('returns 200 and removes trade from storage for valid delete', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([MOCK_RAW_TRADE]);
+
+    const res = await request(app)
+      .delete('/trade-1')
+      .set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.body.deleted).toBe(true);
+    expect(storageService.write).toHaveBeenCalledWith('traders/tamas/trades.json', []);
+  });
+
+  it('returns 404 when trade is not found anywhere', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([]);
+
+    const res = await request(app)
+      .delete('/missing-id')
+      .set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('returns 403 when trade belongs to another trader', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([]);
+    vi.mocked(fs.readdir).mockResolvedValue([
+      { name: 'other-trader', isDirectory: () => true },
+    ] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
+    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify([{ ...MOCK_RAW_TRADE, id: 'foreign-id' }]));
+
+    const res = await request(app)
+      .delete('/foreign-id')
+      .set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 });

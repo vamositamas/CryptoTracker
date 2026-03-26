@@ -344,10 +344,12 @@ describe('TradeTableComponent', () => {
     const saveSpy = vi.spyOn(fixture.componentInstance.editSave, 'emit');
     fixture.componentInstance.onSaveEdit();
 
-    expect(saveSpy).toHaveBeenCalledWith({
-      id: 'trade-1',
-      dto: expect.objectContaining({ position: 'ETH' }),
-    });
+    expect(saveSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'trade-1',
+        dto: expect.objectContaining({ position: 'ETH' }),
+      }),
+    );
   });
 
   it('does not emit editSave when draft is invalid', async () => {
@@ -365,5 +367,68 @@ describe('TradeTableComponent', () => {
 
     expect(saveSpy).not.toHaveBeenCalled();
     expect(fixture.componentInstance.fieldErrors().sellPrice).toContain('greater than 0');
+  });
+
+  it('shows inline delete confirmation when delete icon is clicked', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const deleteBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.getAttribute('aria-label') === 'Delete trade') as HTMLButtonElement;
+
+    deleteBtn.click();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Are you sure?');
+    expect(text).toContain('Delete');
+    expect(text).toContain('Cancel');
+  });
+
+  it('restores normal row state when delete confirmation is cancelled', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.openDeleteConfirm('trade-1');
+    fixture.detectChanges();
+
+    const cancelBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.trim() === 'Cancel') as HTMLButtonElement;
+
+    cancelBtn.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.deleteConfirmId()).toBeNull();
+  });
+
+  it('emits deleteTrade when delete confirmation is accepted', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.openDeleteConfirm('trade-1');
+    fixture.detectChanges();
+
+    const deleteSpy = vi.spyOn(fixture.componentInstance.deleteTrade, 'emit');
+
+    const confirmDeleteBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.trim() === 'Delete') as HTMLButtonElement;
+
+    confirmDeleteBtn.click();
+    fixture.detectChanges();
+
+    expect(deleteSpy).toHaveBeenCalledWith('trade-1');
+    expect(fixture.componentInstance.deleteConfirmId()).toBeNull();
   });
 });

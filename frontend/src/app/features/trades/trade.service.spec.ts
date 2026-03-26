@@ -42,6 +42,7 @@ describe('TradeService', () => {
     getTrades: ReturnType<typeof vi.fn>;
     createTrade: ReturnType<typeof vi.fn>;
     updateTrade: ReturnType<typeof vi.fn>;
+    deleteTrade: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -49,6 +50,7 @@ describe('TradeService', () => {
       getTrades: vi.fn().mockResolvedValue([BASE_TRADE]),
       createTrade: vi.fn().mockResolvedValue(BASE_TRADE),
       updateTrade: vi.fn().mockResolvedValue(BASE_TRADE),
+      deleteTrade: vi.fn().mockResolvedValue(undefined),
     };
 
     TestBed.configureTestingModule({
@@ -153,6 +155,27 @@ describe('TradeService', () => {
 
       await expect(service.updateTrade('trade-1', UPDATE_DTO)).rejects.toThrow('update failed');
       expect(service.trades()[0].position).toBe('BTC');
+    });
+  });
+
+  describe('deleteTrade', () => {
+    it('optimistically removes trade on delete success', async () => {
+      service.trades.set([BASE_TRADE]);
+
+      await service.deleteTrade('trade-1');
+
+      expect(apiMock.deleteTrade).toHaveBeenCalledWith('trade-1');
+      expect(service.trades()).toHaveLength(0);
+    });
+
+    it('restores removed trade on delete failure', async () => {
+      service.trades.set([BASE_TRADE]);
+      apiMock.deleteTrade.mockRejectedValue(new Error('delete failed'));
+
+      await expect(service.deleteTrade('trade-1')).rejects.toThrow('delete failed');
+
+      expect(service.trades()).toHaveLength(1);
+      expect(service.trades()[0].id).toBe('trade-1');
     });
   });
 });

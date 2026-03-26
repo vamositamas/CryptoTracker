@@ -30,9 +30,16 @@ export class TradeTableComponent {
 
   readonly newTrade = output<void>();
   readonly clearFilters = output<void>();
-  readonly editSave = output<{ id: string; dto: CreateTradeDto }>();
+  readonly deleteTrade = output<string>();
+  readonly editSave = output<{
+    id: string;
+    dto: CreateTradeDto;
+    onSuccess: () => void;
+    onError: () => void;
+  }>();
 
   readonly editingId = signal<string | null>(null);
+  readonly deleteConfirmId = signal<string | null>(null);
   readonly savingEdit = signal(false);
   readonly draft = signal<CreateTradeDto>({
     type: '',
@@ -113,6 +120,22 @@ export class TradeTableComponent {
     this.savingEdit.set(false);
   }
 
+  openDeleteConfirm(tradeId: string, event?: Event): void {
+    event?.stopPropagation();
+    this.deleteConfirmId.set(tradeId);
+  }
+
+  cancelDeleteConfirm(event?: Event): void {
+    event?.stopPropagation();
+    this.deleteConfirmId.set(null);
+  }
+
+  confirmDelete(tradeId: string, event?: Event): void {
+    event?.stopPropagation();
+    this.deleteConfirmId.set(null);
+    this.deleteTrade.emit(tradeId);
+  }
+
   setDraftField<K extends keyof CreateTradeDto>(field: K, value: CreateTradeDto[K]): void {
     this.draft.update((d) => ({ ...d, [field]: value }));
   }
@@ -125,9 +148,17 @@ export class TradeTableComponent {
     if (!dto) return;
 
     this.savingEdit.set(true);
-    this.editSave.emit({ id, dto });
-    this.savingEdit.set(false);
-    this.cancelEdit();
+    this.editSave.emit({
+      id,
+      dto,
+      onSuccess: () => {
+        this.savingEdit.set(false);
+        this.cancelEdit();
+      },
+      onError: () => {
+        this.savingEdit.set(false);
+      },
+    });
   }
 
   onEditKeydown(event: KeyboardEvent): void {

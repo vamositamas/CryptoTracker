@@ -18,6 +18,7 @@ export class TradesComponent implements OnInit {
   readonly loading = this.tradeService.loading;
 
   readonly showForm = signal(false);
+  readonly deleteErrorToast = signal<string | null>(null);
   readonly filterState = signal<FilterState>({
     position: '',
     type: '',
@@ -25,6 +26,8 @@ export class TradesComponent implements OnInit {
     dateTo: '',
   });
   readonly clearCount = signal(0);
+
+  private deleteToastTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly hasActiveFilters = computed(() => {
     const f = this.filterState();
@@ -81,8 +84,33 @@ export class TradesComponent implements OnInit {
     this.filterState.set({ position: '', type: '', dateFrom: '', dateTo: '' });
   }
 
-  async onEditSave(event: { id: string; dto: CreateTradeDto }): Promise<void> {
-    await this.tradeService.updateTrade(event.id, event.dto);
+  async onEditSave(event: {
+    id: string;
+    dto: CreateTradeDto;
+    onSuccess: () => void;
+    onError: () => void;
+  }): Promise<void> {
+    try {
+      await this.tradeService.updateTrade(event.id, event.dto);
+      event.onSuccess();
+    } catch {
+      event.onError();
+    }
+  }
+
+  async onDeleteTrade(id: string): Promise<void> {
+    try {
+      await this.tradeService.deleteTrade(id);
+    } catch {
+      const message = this.tradeService.error() ?? 'Failed to delete trade. Please try again.';
+      this.deleteErrorToast.set(message);
+      if (this.deleteToastTimer) {
+        clearTimeout(this.deleteToastTimer);
+      }
+      this.deleteToastTimer = setTimeout(() => {
+        this.deleteErrorToast.set(null);
+      }, 4000);
+    }
   }
 
   @HostListener('document:keydown.n', ['$event'])
