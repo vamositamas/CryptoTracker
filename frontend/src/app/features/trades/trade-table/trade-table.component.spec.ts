@@ -73,6 +73,7 @@ describe('TradeTableComponent', () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
     fixture.componentRef.setInput('trades', []);
+    fixture.componentRef.setInput('hasActiveFilters', false);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -84,6 +85,7 @@ describe('TradeTableComponent', () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
     fixture.componentRef.setInput('trades', []);
+    fixture.componentRef.setInput('hasActiveFilters', false);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -96,6 +98,7 @@ describe('TradeTableComponent', () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
     fixture.componentRef.setInput('trades', []);
+    fixture.componentRef.setInput('hasActiveFilters', false);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -256,5 +259,39 @@ describe('TradeTableComponent', () => {
     tokenBtn.click();
     fixture.detectChanges();
     expect(tokenTh.hasAttribute('aria-sort')).toBe(false);
+  });
+
+  it('shows filter-specific empty state when hasActiveFilters is true', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', []);
+    fixture.componentRef.setInput('hasActiveFilters', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('No trades match your filters');
+    expect(text).toContain('Clear filters');
+    expect(text).not.toContain('No trades recorded yet');
+  });
+
+  it('emits clearFilters when filter-empty-state button is clicked', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', []);
+    fixture.componentRef.setInput('hasActiveFilters', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const clearSpy = vi.spyOn(fixture.componentInstance.clearFilters, 'emit');
+
+    const clearBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Clear filters')) as HTMLButtonElement;
+
+    clearBtn.click();
+    fixture.detectChanges();
+
+    expect(clearSpy).toHaveBeenCalledOnce();
   });
 });

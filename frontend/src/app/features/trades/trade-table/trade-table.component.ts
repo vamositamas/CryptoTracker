@@ -25,8 +25,10 @@ export type SortableColumn =
 export class TradeTableComponent {
   readonly trades = input<TradeWithMeta[]>([]);
   readonly loading = input<boolean>(false);
+  readonly hasActiveFilters = input<boolean>(false);
 
   readonly newTrade = output<void>();
+  readonly clearFilters = output<void>();
 
   readonly sortCol = signal<SortableColumn | null>(null);
   readonly sortDir = signal<'asc' | 'desc'>('asc');
@@ -66,5 +68,9 @@ export class TradeTableComponent {
 
   onNewTrade(): void {
     this.newTrade.emit();
+  }
+
+  onClearFilters(): void {
+    this.clearFilters.emit();
   }
 }

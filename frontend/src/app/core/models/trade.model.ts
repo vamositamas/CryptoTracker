@@ -44,3 +44,11 @@ export interface ApiError {
   message: string;
   field?: string;
 }
+
+/** Active filter values for the trade list. Empty string means "no filter on this field". */
+export interface FilterState {
+  position: string;
+  type: string;
+  dateFrom: string;
+  dateTo: string;
+}

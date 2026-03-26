@@ -36,14 +36,25 @@
       <rect width="40" height="32" x="4" y="8" rx="4" stroke="currentColor" stroke-width="2"/>
       <path d="M14 20h20M14 28h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
-    <p class="text-gray-500 text-sm">No trades recorded yet.</p>
-    <button
-      type="button"
-      (click)="onNewTrade()"
-      class="text-blue-600 text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-    >
-      Add your first trade →
-    </button>
+    @if (hasActiveFilters()) {
+      <p class="text-gray-500 text-sm">No trades match your filters.</p>
+      <button
+        type="button"
+        (click)="onClearFilters()"
+        class="text-blue-600 text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+      >
+        Clear filters
+      </button>
+    } @else {
+      <p class="text-gray-500 text-sm">No trades recorded yet.</p>
+      <button
+        type="button"
+        (click)="onNewTrade()"
+        class="text-blue-600 text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+      >
+        Add your first trade →
+      </button>
+    }
   </div>
 } @else {
   <!-- Data table -->

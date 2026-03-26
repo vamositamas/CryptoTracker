@@ -20,9 +20,16 @@
     />
   }
 
+  <app-trade-filter-bar
+    [clearCount]="clearCount()"
+    (filterChange)="onFilterChange($event)"
+  />
+
   <app-trade-table
-    [trades]="trades()"
+    [trades]="filteredTrades()"
     [loading]="loading()"
+    [hasActiveFilters]="hasActiveFilters()"
     (newTrade)="openForm()"
+    (clearFilters)="onClearFilters()"
   />
 </main>
