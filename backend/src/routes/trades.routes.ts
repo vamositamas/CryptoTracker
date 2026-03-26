@@ -135,7 +135,7 @@ router.post('/', auditMiddleware, async (req: Request, res: Response) => {
 // --- PUT /api/v1/trades/:id ---
 router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
   const { trader } = req as TraderRequest;
-  const tradeId = req.params['id'];
+  const tradeId = Array.isArray(req.params['id']) ? req.params['id'][0] : req.params['id'];
 
   if (!tradeId) {
     res.status(400).json({
@@ -198,7 +198,7 @@ router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
 // --- DELETE /api/v1/trades/:id ---
 router.delete('/:id', auditMiddleware, async (req: Request, res: Response) => {
   const { trader } = req as TraderRequest;
-  const tradeId = req.params['id'];
+  const tradeId = Array.isArray(req.params['id']) ? req.params['id'][0] : req.params['id'];
 
   if (!tradeId) {
     res.status(400).json({

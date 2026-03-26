@@ -5,7 +5,7 @@ import { storageService } from '../services/storage.service';
 import * as fs from 'fs/promises';
 
 vi.mock('../services/storage.service', () => ({
-  storageService: { read: vi.fn(), write: vi.fn() },
+  storageService: { read: vi.fn(), write: vi.fn(), appendJsonArray: vi.fn() },
 }));
 
 vi.mock('../services/formula.service', () => ({
@@ -87,6 +87,7 @@ describe('POST /', () => {
   beforeEach(() => {
     vi.mocked(storageService.read).mockRejectedValue(new Error('ENOENT'));
     vi.mocked(storageService.write).mockResolvedValue(undefined);
+    vi.mocked(storageService.appendJsonArray).mockResolvedValue(undefined);
   });
 
   afterEach(() => vi.restoreAllMocks());
@@ -155,6 +156,7 @@ describe('PUT /:id', () => {
 
   beforeEach(() => {
     vi.mocked(storageService.write).mockResolvedValue(undefined);
+    vi.mocked(storageService.appendJsonArray).mockResolvedValue(undefined);
   });
 
   afterEach(() => vi.restoreAllMocks());
@@ -240,6 +242,7 @@ describe('PUT /:id', () => {
 describe('DELETE /:id', () => {
   beforeEach(() => {
     vi.mocked(storageService.write).mockResolvedValue(undefined);
+    vi.mocked(storageService.appendJsonArray).mockResolvedValue(undefined);
     vi.mocked(fs.readdir).mockResolvedValue([] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
     vi.mocked(fs.readFile).mockResolvedValue('[]');
   });
