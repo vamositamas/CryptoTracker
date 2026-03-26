@@ -1,0 +1,10 @@
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+  <div class="text-sm font-medium text-gray-600 mb-2">{{ label }}</div>
+  @if (loading) {
+    <div class="h-10 bg-gray-200 rounded animate-pulse"></div>
+  } @else {
+    <div class="text-3xl font-bold tabular-nums {{ valueColorClass }}">
+      {{ value }}
+    </div>
+  }
+</div>
