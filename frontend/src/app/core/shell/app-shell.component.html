@@ -1,0 +1,64 @@
+<!-- Skip to main content — first focusable element in the DOM -->
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:top-4 focus:left-4 focus:rounded-md"
+>Skip to main content</a>
+
+<!-- Sidebar -->
+<nav
+  class="fixed left-0 top-0 h-screen w-60 bg-gray-900 flex flex-col z-40"
+  aria-label="Main navigation"
+>
+  <!-- Logo / App name -->
+  <div class="px-6 py-5 border-b border-gray-800">
+    <span class="text-lg font-semibold text-white">CryptoTracker</span>
+  </div>
+
+  <!-- Navigation links -->
+  <ul class="flex-1 px-3 py-4 space-y-1" role="list">
+    <li>
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="bg-blue-900/40 !text-blue-300"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        aria-label="Dashboard"
+      >Dashboard</a>
+    </li>
+    <li>
+      <a
+        routerLink="/trades"
+        routerLinkActive="bg-blue-900/40 !text-blue-300"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        aria-label="Trades"
+      >Trades</a>
+    </li>
+    <li>
+      <a
+        routerLink="/audit"
+        routerLinkActive="bg-blue-900/40 !text-blue-300"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        aria-label="Audit Trail"
+      >Audit Trail</a>
+    </li>
+    <li>
+      <a
+        routerLink="/master-data"
+        routerLinkActive="bg-blue-900/40 !text-blue-300"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        aria-label="Master Data"
+      >Master Data</a>
+    </li>
+  </ul>
+
+  <!-- Sidebar footer — trader identity populated in Story 2.2 -->
+  <div class="px-4 py-4 border-t border-gray-800">
+    <span class="text-xs text-gray-500">v0.1.0</span>
+  </div>
+</nav>
+
+<!-- Main content area -->
+<div class="ml-60 min-h-screen bg-gray-50">
+  <div class="max-w-[1400px] mx-auto">
+    <router-outlet />
+  </div>
+</div>
