@@ -1,8 +1,12 @@
-import express from 'express';
+import express, { ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import * as path from 'path';
+import { initSeedData } from './utils/seed-data';
 
 dotenv.config();
+
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '../data'));
 
 export const app = express();
 export const PORT = process.env.PORT || 3001;
@@ -34,9 +38,25 @@ app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+// ── Global error handler (must be last middleware, 4-param signature) ─────
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  console.error('[server] Unhandled error:', err);
+  res.status(500).json({
+    error: { code: 'INTERNAL_ERROR', message: (err as Error).message ?? 'Internal server error' },
+  });
+};
+app.use(errorHandler);
+
 // ── Start (only when run directly, not during tests) ─────────────────────
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`[server] Backend running on http://localhost:${PORT}`);
-  });
+  initSeedData(DATA_DIR)
+    .then(() =>
+      app.listen(PORT, () => {
+        console.log(`[server] Backend running on http://localhost:${PORT}`);
+      }),
+    )
+    .catch((err) => {
+      console.error('[server] Seed data init failed:', err);
+      process.exit(1);
+    });
 }
