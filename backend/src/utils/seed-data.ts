@@ -23,6 +23,8 @@ const DEFAULT_POSITIONS = [
   { id: 'short', name: 'Short' },
 ];
 
+const DEFAULT_TRADERS = ['tamas', 'mark'];
+
 const DEFAULT_FORMULAS = [
   { field: 'investment',        expression: 'volume * buyPrice / leverage',                                       variables: ['volume', 'buyPrice', 'leverage'] },
   { field: 'investmentAll',     expression: 'volume * buyPrice',                                                  variables: ['volume', 'buyPrice'] },
@@ -56,6 +58,7 @@ export async function initSeedData(dataDir: string): Promise<void> {
     [path.join(shared, 'tokens.json'), DEFAULT_TOKENS],
     [path.join(shared, 'trade-types.json'), DEFAULT_TRADE_TYPES],
     [path.join(shared, 'positions.json'), DEFAULT_POSITIONS],
+    [path.join(shared, 'traders.json'), DEFAULT_TRADERS],
     [path.join(config, 'formulas.json'), DEFAULT_FORMULAS],
   ];
   for (const [filePath, data] of seeds) {

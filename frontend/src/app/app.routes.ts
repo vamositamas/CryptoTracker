@@ -1,8 +1,16 @@
 import { Routes } from '@angular/router';
+import { traderGuard } from './core/guards/trader.guard';
 
 export const routes: Routes = [
   {
+    path: 'select-trader',
+    title: 'Select Trader — CryptoTracker',
+    loadComponent: () =>
+      import('./features/user-selector/user-selector.component').then(m => m.UserSelectorComponent),
+  },
+  {
     path: '',
+    canActivate: [traderGuard],
     loadComponent: () =>
       import('./core/shell/app-shell.component').then(m => m.AppShellComponent),
     children: [

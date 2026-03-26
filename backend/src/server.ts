@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import * as path from 'path';
 import { initSeedData } from './utils/seed-data';
 import { formulaService } from './services/formula.service';
+import tradersRouter from './routes/traders.routes';
 
 dotenv.config();
 
@@ -38,6 +39,9 @@ app.use('/data', (_req, res) => {
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Shared routes (no trader scope required)
+app.use('/api/v1/traders', tradersRouter);
 
 // ── Global error handler (must be last middleware, 4-param signature) ─────
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
