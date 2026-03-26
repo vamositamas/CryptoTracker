@@ -34,6 +34,21 @@ const LOSS_TRADE: TradeWithMeta = {
   result: 'Loss',
 };
 
+const ALT_TRADE: TradeWithMeta = {
+  ...WIN_TRADE,
+  id: 'trade-3',
+  position: 'eth',
+  type: 'futures',
+  leverage: 10,
+  volume: 10,
+  buyPrice: 100,
+  sellPrice: 200,
+  closeDate: '2024-05-01',
+  nettoProfit: 50,
+  profitPercent: 1,
+  result: 'Win',
+};
+
 describe('TradeTableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -136,5 +151,110 @@ describe('TradeTableComponent', () => {
 
     const row = fixture.nativeElement.querySelector('tbody tr') as HTMLElement;
     expect(row.className).toContain('bg-emerald-50');
+  });
+
+  it('sorts ascending on first header click and descending on second click', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE, LOSS_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const profitBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('thead button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Net Profit')) as HTMLButtonElement;
+
+    profitBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-2', 'trade-1']);
+
+    profitBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-2']);
+  });
+
+  it('resets to API order on third click', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE, LOSS_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const profitBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('thead button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Net Profit')) as HTMLButtonElement;
+
+    profitBtn.click();
+    profitBtn.click();
+    profitBtn.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-2']);
+  });
+
+  it('sorts numeric columns numerically (not lexicographically)', async () => {
+    const midTrade: TradeWithMeta = { ...WIN_TRADE, id: 'trade-mid', volume: 2 };
+    const highTrade: TradeWithMeta = { ...WIN_TRADE, id: 'trade-high', volume: 10 };
+    const lowTrade: TradeWithMeta = { ...WIN_TRADE, id: 'trade-low', volume: 1 };
+
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [highTrade, lowTrade, midTrade]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const volumeBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('thead button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Volume')) as HTMLButtonElement;
+
+    volumeBtn.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.volume)).toEqual([1, 2, 10]);
+  });
+
+  it('sorts string columns case-insensitively', async () => {
+    const btcTrade: TradeWithMeta = { ...WIN_TRADE, id: 'btc', position: 'BTC' };
+    const ethTrade: TradeWithMeta = { ...ALT_TRADE, id: 'eth', position: 'eth' };
+
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [ethTrade, btcTrade]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const tokenBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('thead button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Token')) as HTMLButtonElement;
+
+    tokenBtn.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.position)).toEqual(['BTC', 'eth']);
+  });
+
+  it('sets aria-sort on active column and clears it on third click', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE, LOSS_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const tokenBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('thead button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Token')) as HTMLButtonElement;
+
+    tokenBtn.click();
+    fixture.detectChanges();
+    const tokenTh = tokenBtn.closest('th') as HTMLElement;
+    expect(tokenTh.getAttribute('aria-sort')).toBe('ascending');
+
+    tokenBtn.click();
+    fixture.detectChanges();
+    expect(tokenTh.getAttribute('aria-sort')).toBe('descending');
+
+    tokenBtn.click();
+    fixture.detectChanges();
+    expect(tokenTh.hasAttribute('aria-sort')).toBe(false);
   });
 });
