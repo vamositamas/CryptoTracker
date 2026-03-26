@@ -43,4 +43,9 @@ describe('StorageService', () => {
     expect(resolved).toContain('shared');
     expect(resolved).toContain('tokens.json');
   });
+
+  it('read() / write() throw on path traversal attempt', async () => {
+    await expect(svc.read('../outside.json')).rejects.toThrow('Path escapes data directory');
+    await expect(svc.write('../outside.json', {})).rejects.toThrow('Path escapes data directory');
+  });
 });

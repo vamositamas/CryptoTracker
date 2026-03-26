@@ -11,5 +11,10 @@ export async function atomicWrite(filePath: string, data: unknown): Promise<void
   const json = JSON.stringify(data, null, 2);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(tmpPath, json, 'utf-8');
-  await fs.rename(tmpPath, filePath);
+  try {
+    await fs.rename(tmpPath, filePath);
+  } catch (err) {
+    await fs.unlink(tmpPath).catch(() => undefined);
+    throw err;
+  }
 }

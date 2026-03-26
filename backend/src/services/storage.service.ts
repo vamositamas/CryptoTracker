@@ -15,13 +15,22 @@ export class StorageService {
   }
 
   resolveDataPath(relativePath: string): string {
-    return path.resolve(this.dataDir, relativePath);
+    const resolved = path.resolve(this.dataDir, relativePath);
+    const relative = path.relative(this.dataDir, resolved);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`Path escapes data directory: ${relativePath}`);
+    }
+    return resolved;
   }
 
   async read<T>(relativePath: string): Promise<T> {
     const filePath = this.resolveDataPath(relativePath);
     const raw = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(raw) as T;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      throw new Error(`Failed to parse JSON at ${filePath}`);
+    }
   }
 
   async write(relativePath: string, data: unknown): Promise<void> {

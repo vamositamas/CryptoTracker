@@ -42,7 +42,7 @@ app.get('/api/v1/health', (_req, res) => {
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error('[server] Unhandled error:', err);
   res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: (err as Error).message ?? 'Internal server error' },
+    error: { code: 'INTERNAL_ERROR', message: (err as Error).message || 'Internal server error' },
   });
 };
 app.use(errorHandler);
