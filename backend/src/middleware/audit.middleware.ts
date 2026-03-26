@@ -7,6 +7,7 @@ export interface AuditEntry {
   action: 'CREATE' | 'UPDATE' | 'DELETE';
   traderId: string;
   entityId: string;
+  field?: string;
   previousValue: unknown;
   newValue: unknown;
 }
@@ -34,27 +35,46 @@ export function auditMiddleware(req: TraderRequest, res: Response, next: NextFun
     const action: AuditEntry['action'] =
       req.method === 'POST' ? 'CREATE' : req.method === 'DELETE' ? 'DELETE' : 'UPDATE';
 
+    const previousValue = res.locals['auditPreviousValue'] ?? null;
+    const changedField =
+      action === 'UPDATE'
+        ? detectChangedField(
+            previousValue as Record<string, unknown> | null,
+            record,
+          )
+        : undefined;
+
     const entry: AuditEntry = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
       action,
       traderId: trader,
       entityId: String(record['id'] ?? ''),
-      previousValue: res.locals['auditPreviousValue'] ?? null,
+      field: changedField,
+      previousValue,
       newValue: action === 'DELETE' ? null : record,
     };
 
     const logPath = `traders/${trader}/audit-log.json`;
 
     // Fire-and-forget: append entry asynchronously; don't block the response
-    storageService
-      .read<AuditEntry[]>(logPath)
-      .then((existing) => storageService.write(logPath, [...existing, entry]))
-      .catch(() =>
-        // If log doesn't exist yet, initialise with this entry
-        storageService.write(logPath, [entry]),
-      );
+    storageService.appendJsonArray<AuditEntry>(logPath, entry).catch(() => undefined);
   });
 
   next();
+}
+
+function detectChangedField(
+  previous: Record<string, unknown> | null,
+  current: Record<string, unknown>,
+): string | undefined {
+  if (!previous) return undefined;
+
+  for (const key of Object.keys(current)) {
+    if (previous[key] !== current[key]) {
+      return key;
+    }
+  }
+
+  return undefined;
 }

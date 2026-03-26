@@ -38,6 +38,23 @@ export class StorageService {
     const queue = getFileQueue(filePath);
     await queue.add(() => atomicWrite(filePath, data));
   }
+
+  async appendJsonArray<T>(relativePath: string, item: T): Promise<void> {
+    const filePath = this.resolveDataPath(relativePath);
+    const queue = getFileQueue(filePath);
+    await queue.add(async () => {
+      let existing: T[] = [];
+      try {
+        const raw = await fs.readFile(filePath, 'utf-8');
+        const parsed = JSON.parse(raw) as unknown;
+        existing = Array.isArray(parsed) ? (parsed as T[]) : [];
+      } catch {
+        existing = [];
+      }
+
+      await atomicWrite(filePath, [...existing, item]);
+    });
+  }
 }
 
 export const storageService = new StorageService();

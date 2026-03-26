@@ -16,6 +16,23 @@ describe('GET /api/v1/health', () => {
   });
 });
 
+describe('GET /api/v1/audit', () => {
+  it('is mounted and requires trader identity', async () => {
+    const res = await request(app).get('/api/v1/audit');
+    expect([200, 401]).toContain(res.status);
+  });
+
+  it('does not expose PUT /api/v1/audit/:id', async () => {
+    const res = await request(app).put('/api/v1/audit/some-id').send({});
+    expect([401, 404]).toContain(res.status);
+  });
+
+  it('does not expose DELETE /api/v1/audit/:id', async () => {
+    const res = await request(app).delete('/api/v1/audit/some-id');
+    expect([401, 404]).toContain(res.status);
+  });
+});
+
 describe('GET /data (403 guard)', () => {
   it('returns 403 when accessing /data directly', async () => {
     const res = await request(app).get('/data/anything.json');

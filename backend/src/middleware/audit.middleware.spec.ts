@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { storageService } from '../services/storage.service';
 
 vi.mock('../services/storage.service', () => ({
-  storageService: { read: vi.fn(), write: vi.fn() },
+  storageService: { read: vi.fn(), write: vi.fn(), appendJsonArray: vi.fn() },
 }));
 
 import { auditMiddleware } from './audit.middleware';
@@ -28,6 +28,7 @@ describe('auditMiddleware', () => {
   beforeEach(() => {
     vi.mocked(storageService.read).mockResolvedValue([]);
     vi.mocked(storageService.write).mockResolvedValue(undefined);
+    vi.mocked(storageService.appendJsonArray).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -53,11 +54,9 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).toHaveBeenCalledWith(
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
       'traders/tamas/audit-log.json',
-      expect.arrayContaining([
-        expect.objectContaining({ action: 'CREATE', entityId: 'trade-1', traderId: 'tamas' }),
-      ]),
+      expect.objectContaining({ action: 'CREATE', entityId: 'trade-1', traderId: 'tamas' }),
     );
   });
 
@@ -70,9 +69,9 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).toHaveBeenCalledWith(
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
       'traders/tamas/audit-log.json',
-      expect.arrayContaining([expect.objectContaining({ action: 'UPDATE' })]),
+      expect.objectContaining({ action: 'UPDATE' }),
     );
   });
 
@@ -85,9 +84,9 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).toHaveBeenCalledWith(
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
       'traders/tamas/audit-log.json',
-      expect.arrayContaining([expect.objectContaining({ action: 'DELETE' })]),
+      expect.objectContaining({ action: 'DELETE' }),
     );
   });
 
@@ -100,7 +99,7 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).not.toHaveBeenCalled();
+    expect(storageService.appendJsonArray).not.toHaveBeenCalled();
   });
 
   it('does not write when auditRecord is absent', async () => {
@@ -112,11 +111,10 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).not.toHaveBeenCalled();
+    expect(storageService.appendJsonArray).not.toHaveBeenCalled();
   });
 
   it('initialises audit log when file does not exist (ENOENT)', async () => {
-    vi.mocked(storageService.read).mockRejectedValue(new Error('ENOENT'));
     const req = { method: 'POST', trader: 'tamas' } as unknown as Request;
     const res = makeRes(201, { auditRecord: { id: 'trade-1' } });
     const next = vi.fn();
@@ -125,9 +123,9 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).toHaveBeenCalledWith(
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
       'traders/tamas/audit-log.json',
-      expect.arrayContaining([expect.objectContaining({ action: 'CREATE', entityId: 'trade-1' })]),
+      expect.objectContaining({ action: 'CREATE', entityId: 'trade-1' }),
     );
   });
 
@@ -141,9 +139,26 @@ describe('auditMiddleware', () => {
     res.triggerFinish();
     await new Promise((r) => setTimeout(r, 20));
 
-    expect(storageService.write).toHaveBeenCalledWith(
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
       'traders/tamas/audit-log.json',
-      expect.arrayContaining([expect.objectContaining({ previousValue: prev })]),
+      expect.objectContaining({ previousValue: prev }),
+    );
+  });
+
+  it('includes changed field name on UPDATE entries', async () => {
+    const prev = { id: 'trade-1', buyPrice: 100, sellPrice: 120 };
+    const nextVal = { id: 'trade-1', buyPrice: 110, sellPrice: 120 };
+    const req = { method: 'PUT', trader: 'tamas' } as unknown as Request;
+    const res = makeRes(200, { auditRecord: nextVal, auditPreviousValue: prev });
+    const next = vi.fn();
+
+    auditMiddleware(req, res as unknown as Response, next as NextFunction);
+    res.triggerFinish();
+    await new Promise((r) => setTimeout(r, 20));
+
+    expect(storageService.appendJsonArray).toHaveBeenCalledWith(
+      'traders/tamas/audit-log.json',
+      expect.objectContaining({ action: 'UPDATE', field: 'buyPrice' }),
     );
   });
 });
