@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import * as path from 'path';
 import { initSeedData } from './utils/seed-data';
+import { formulaService } from './services/formula.service';
 
 dotenv.config();
 
@@ -50,13 +51,17 @@ app.use(errorHandler);
 // ── Start (only when run directly, not during tests) ─────────────────────
 if (require.main === module) {
   initSeedData(DATA_DIR)
+    .then(async () => {
+      await formulaService.load();
+      formulaService.validate();
+    })
     .then(() =>
       app.listen(PORT, () => {
         console.log(`[server] Backend running on http://localhost:${PORT}`);
       }),
     )
     .catch((err) => {
-      console.error('[server] Seed data init failed:', err);
+      console.error('[server] Startup failed:', err.message);
       process.exit(1);
     });
 }

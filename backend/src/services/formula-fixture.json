@@ -1,0 +1,122 @@
+[
+  {
+    "scenario": "typical-btc-long-leverage10",
+    "input": {
+      "type": "long",
+      "position": "BTC",
+      "leverage": 10,
+      "volume": 50,
+      "buyPrice": 8.47,
+      "sellPrice": 12.20,
+      "closeDate": "2026-03-26",
+      "holdingDays": 30
+    },
+    "expected": {
+      "investment": 42.35,
+      "investmentAll": 423.5,
+      "sellValue": 610.0,
+      "cost": 42.35,
+      "nettoProfit": 18.65,
+      "profitPercent": 440.38,
+      "profitRealPercent": 44.04,
+      "dailyProfitPercent": 14.68,
+      "result": "Win"
+    }
+  },
+  {
+    "scenario": "leverage-1-no-amplification",
+    "input": {
+      "type": "long",
+      "position": "ETH",
+      "leverage": 1,
+      "volume": 10,
+      "buyPrice": 3000,
+      "sellPrice": 3300,
+      "closeDate": "2026-03-26",
+      "holdingDays": 10
+    },
+    "expected": {
+      "investment": 30000,
+      "investmentAll": 30000,
+      "sellValue": 33000,
+      "cost": 30000,
+      "nettoProfit": 3000,
+      "profitPercent": 10.0,
+      "profitRealPercent": 10.0,
+      "dailyProfitPercent": 1.0,
+      "result": "Win"
+    }
+  },
+  {
+    "scenario": "same-day-close",
+    "input": {
+      "type": "long",
+      "position": "SOL",
+      "leverage": 5,
+      "volume": 100,
+      "buyPrice": 100,
+      "sellPrice": 105,
+      "closeDate": "2026-03-26",
+      "holdingDays": 1
+    },
+    "expected": {
+      "investment": 2000,
+      "investmentAll": 10000,
+      "sellValue": 10500,
+      "cost": 2000,
+      "nettoProfit": 100,
+      "profitPercent": 25.0,
+      "profitRealPercent": 5.0,
+      "dailyProfitPercent": 25.0,
+      "result": "Win"
+    }
+  },
+  {
+    "scenario": "loss-trade",
+    "input": {
+      "type": "long",
+      "position": "DOGE",
+      "leverage": 10,
+      "volume": 1000,
+      "buyPrice": 0.10,
+      "sellPrice": 0.08,
+      "closeDate": "2026-03-26",
+      "holdingDays": 5
+    },
+    "expected": {
+      "investment": 10,
+      "investmentAll": 100,
+      "sellValue": 80,
+      "cost": 10,
+      "nettoProfit": -2,
+      "profitPercent": -200.0,
+      "profitRealPercent": -20.0,
+      "dailyProfitPercent": -40.0,
+      "result": "Loss"
+    }
+  },
+  {
+    "scenario": "high-leverage-100x",
+    "input": {
+      "type": "long",
+      "position": "BTC",
+      "leverage": 100,
+      "volume": 1,
+      "buyPrice": 60000,
+      "sellPrice": 60600,
+      "closeDate": "2026-03-26",
+      "holdingDays": 1
+    },
+    "expected": {
+      "investment": 600,
+      "investmentAll": 60000,
+      "sellValue": 60600,
+      "cost": 600,
+      "nettoProfit": 6,
+      "profitPercent": 100.0,
+      "profitRealPercent": 1.0,
+      "dailyProfitPercent": 100.0,
+      "result": "Win"
+    }
+  }
+]
