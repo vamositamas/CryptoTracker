@@ -107,7 +107,13 @@ export class FormulaService {
         continue;
       }
       const expr = this.parser.parse(def.expression);
-      calculated[def.field] = expr.evaluate(vars as Record<string, number>);
+      try {
+        calculated[def.field] = expr.evaluate(vars as Record<string, number>);
+      } catch (err) {
+        throw new Error(
+          `[ERROR] Formula evaluation failed: ${def.field} — ${(err as Error).message}`,
+        );
+      }
       // Make intermediate results available to subsequent formulas
       vars[def.field] = calculated[def.field];
     }

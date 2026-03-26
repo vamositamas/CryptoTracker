@@ -61,7 +61,7 @@ if (require.main === module) {
       }),
     )
     .catch((err) => {
-      console.error('[server] Startup failed:', err.message);
+      console.error('[server] Startup failed:', err);
       process.exit(1);
     });
 }
