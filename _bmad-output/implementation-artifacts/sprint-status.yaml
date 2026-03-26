@@ -1,0 +1,97 @@
+# generated: 2026-03-26
+# last_updated: 2026-03-26
+# project: CryptoTracker
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts/stories
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-26
+last_updated: 2026-03-26
+project: CryptoTracker
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts/stories
+
+development_status:
+  # ── Epic 1: Project Foundation & Formula Engine ──────────────────────────
+  epic-1: in-progress
+  1-1-monorepo-initialisation-and-dev-runner: done
+  1-2-storage-infrastructure-and-data-security: done
+  1-3-formula-engine: done
+  epic-1-retrospective: optional
+
+  # ── Epic 2: App Shell & Trader Identity ──────────────────────────────────
+  epic-2: in-progress
+  2-1-app-shell-and-design-system-foundation: done
+  2-2-trader-profile-selection-and-session-persistence: done
+  epic-2-retrospective: optional
+
+  # ── Epic 3: Trade CRUD & Calculated Fields ───────────────────────────────
+  epic-3: in-progress
+  3-1-trade-create: done
+  3-2-trade-list-and-calculated-fields-display: done
+  3-3-trade-filter-and-search: done
+  3-4-trade-edit: done
+  3-5-trade-delete: done
+  epic-3-retrospective: optional
+
+  # ── Epic 4: Audit Trail ───────────────────────────────────────────────────
+  epic-4: in-progress
+  4-1-audit-middleware-and-append-only-storage: review
+  4-2-audit-trail-view: review
+  epic-4-retrospective: optional
+
+  # ── Epic 5: Dashboard & Analytics ────────────────────────────────────────
+  epic-5: in-progress
+  5-1-dashboard-backend-aggregations: review
+  5-2-dashboard-view: backlog
+  epic-5-retrospective: optional
+
+  # ── Epic 6: Master Data Management ───────────────────────────────────────
+  epic-6: backlog
+  6-1-master-data-backend-api: backlog
+  6-2-master-data-management-ui: backlog
+  6-3-master-data-integration-with-trade-form: backlog
+  epic-6-retrospective: optional
+
+  # ── Epic 7: Internationalisation ─────────────────────────────────────────
+  epic-7: backlog
+  7-1-i18n-infrastructure-and-language-toggle: backlog
+  7-2-hungarian-translation-completion: backlog
+  epic-7-retrospective: optional
+
+  # ── Epic 8: Accessibility, Performance & Quality Hardening ───────────────
+  epic-8: backlog
+  8-1-wcag-2-1-aa-accessibility-baseline: backlog
+  8-2-playwright-e2e-suite-and-automated-accessibility-checks: backlog
+  8-3-performance-verification-and-baseline: backlog
+  epic-8-retrospective: optional

@@ -8,6 +8,7 @@ import tradersRouter from './routes/traders.routes';
 import tradesRouter from './routes/trades.routes';
 import masterDataRouter from './routes/master-data.routes';
 import auditRouter from './routes/audit.routes';
+import dashboardRouter from './routes/dashboard.routes';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use('/api/v1/master-data', masterDataRouter);
 // Per-trader routes (traderMiddleware applied inside each router)
 app.use('/api/v1/trades', tradesRouter);
 app.use('/api/v1/audit', auditRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
 
 // ── Global error handler (must be last middleware, 4-param signature) ─────
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {

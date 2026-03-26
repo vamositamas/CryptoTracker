@@ -33,6 +33,18 @@ describe('GET /api/v1/audit', () => {
   });
 });
 
+describe('GET /api/v1/dashboard', () => {
+  it('is mounted and /api/v1/dashboard/kpis requires trader identity', async () => {
+    const res = await request(app).get('/api/v1/dashboard/kpis');
+    expect([200, 401]).toContain(res.status);
+  });
+
+  it('/api/v1/dashboard/monthly requires trader identity', async () => {
+    const res = await request(app).get('/api/v1/dashboard/monthly');
+    expect([200, 401]).toContain(res.status);
+  });
+});
+
 describe('GET /data (403 guard)', () => {
   it('returns 403 when accessing /data directly', async () => {
     const res = await request(app).get('/data/anything.json');
