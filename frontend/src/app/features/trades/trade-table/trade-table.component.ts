@@ -1,6 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { TradeWithMeta } from '../trade.service';
+import { CreateTradeDto } from '../../../core/models/trade.model';
 
 export type { TradeWithMeta };
 
@@ -29,6 +30,20 @@ export class TradeTableComponent {
 
   readonly newTrade = output<void>();
   readonly clearFilters = output<void>();
+  readonly editSave = output<{ id: string; dto: CreateTradeDto }>();
+
+  readonly editingId = signal<string | null>(null);
+  readonly savingEdit = signal(false);
+  readonly draft = signal<CreateTradeDto>({
+    type: '',
+    position: '',
+    leverage: 1,
+    volume: 0,
+    buyPrice: 0,
+    sellPrice: 0,
+    closeDate: '',
+  });
+  readonly fieldErrors = signal<Partial<Record<keyof CreateTradeDto, string>>>({});
 
   readonly sortCol = signal<SortableColumn | null>(null);
   readonly sortDir = signal<'asc' | 'desc'>('asc');
@@ -72,5 +87,98 @@ export class TradeTableComponent {
 
   onClearFilters(): void {
     this.clearFilters.emit();
+  }
+
+  isEditing(tradeId: string): boolean {
+    return this.editingId() === tradeId;
+  }
+
+  startEdit(trade: TradeWithMeta): void {
+    this.editingId.set(trade.id);
+    this.fieldErrors.set({});
+    this.draft.set({
+      type: trade.type,
+      position: trade.position,
+      leverage: trade.leverage,
+      volume: trade.volume,
+      buyPrice: trade.buyPrice,
+      sellPrice: trade.sellPrice,
+      closeDate: trade.closeDate,
+    });
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+    this.fieldErrors.set({});
+    this.savingEdit.set(false);
+  }
+
+  setDraftField<K extends keyof CreateTradeDto>(field: K, value: CreateTradeDto[K]): void {
+    this.draft.update((d) => ({ ...d, [field]: value }));
+  }
+
+  onSaveEdit(): void {
+    const id = this.editingId();
+    if (!id || this.savingEdit()) return;
+
+    const dto = this.validateDraft();
+    if (!dto) return;
+
+    this.savingEdit.set(true);
+    this.editSave.emit({ id, dto });
+    this.savingEdit.set(false);
+    this.cancelEdit();
+  }
+
+  onEditKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.cancelEdit();
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.onSaveEdit();
+    }
+  }
+
+  toNumber(value: string): number {
+    return Number(value);
+  }
+
+  private validateDraft(): CreateTradeDto | null {
+    const d = this.draft();
+    const errors: Partial<Record<keyof CreateTradeDto, string>> = {};
+
+    const type = String(d.type ?? '').trim();
+    const position = String(d.position ?? '').trim();
+    const leverage = Number(d.leverage);
+    const volume = Number(d.volume);
+    const buyPrice = Number(d.buyPrice);
+    const sellPrice = Number(d.sellPrice);
+    const closeDate = String(d.closeDate ?? '').trim();
+
+    if (!type) errors.type = 'Trade type is required';
+    if (!position) errors.position = 'Token is required';
+    if (isNaN(leverage) || leverage <= 0) errors.leverage = 'Leverage must be greater than 0';
+    if (isNaN(volume) || volume <= 0) errors.volume = 'Volume must be greater than 0';
+    if (isNaN(buyPrice) || buyPrice <= 0) errors.buyPrice = 'Buy price must be greater than 0';
+    if (isNaN(sellPrice) || sellPrice <= 0) errors.sellPrice = 'Sell price must be greater than 0';
+    if (!closeDate || isNaN(Date.parse(closeDate))) errors.closeDate = 'Close date is required';
+
+    this.fieldErrors.set(errors);
+    if (Object.keys(errors).length > 0) return null;
+
+    return {
+      type,
+      position,
+      leverage,
+      volume,
+      buyPrice,
+      sellPrice,
+      closeDate,
+    };
   }
 }

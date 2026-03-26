@@ -294,4 +294,76 @@ describe('TradeTableComponent', () => {
 
     expect(clearSpy).toHaveBeenCalledOnce();
   });
+
+  it('enters edit mode when a data row is clicked', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = fixture.nativeElement.querySelector('tbody tr') as HTMLTableRowElement;
+    row.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.editingId()).toBe('trade-1');
+    const saveBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Save'));
+    expect(saveBtn).toBeTruthy();
+  });
+
+  it('cancels edit mode on Escape key', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('input[type="text"]') as HTMLInputElement;
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.editingId()).toBeNull();
+  });
+
+  it('emits editSave on Save for a valid draft', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.componentInstance.setDraftField('position', 'ETH');
+    fixture.detectChanges();
+
+    const saveSpy = vi.spyOn(fixture.componentInstance.editSave, 'emit');
+    fixture.componentInstance.onSaveEdit();
+
+    expect(saveSpy).toHaveBeenCalledWith({
+      id: 'trade-1',
+      dto: expect.objectContaining({ position: 'ETH' }),
+    });
+  });
+
+  it('does not emit editSave when draft is invalid', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.componentInstance.setDraftField('sellPrice', 0);
+
+    const saveSpy = vi.spyOn(fixture.componentInstance.editSave, 'emit');
+    fixture.componentInstance.onSaveEdit();
+
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.fieldErrors().sellPrice).toContain('greater than 0');
+  });
 });

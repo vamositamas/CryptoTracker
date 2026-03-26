@@ -49,6 +49,7 @@ describe('TradesComponent', () => {
     trades: ReturnType<typeof signal<TradeWithMeta[]>>;
     loading: ReturnType<typeof signal<boolean>>;
     loadTrades: ReturnType<typeof vi.fn>;
+    updateTrade: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -59,6 +60,7 @@ describe('TradesComponent', () => {
       trades: tradesSignal,
       loading: loadingSignal,
       loadTrades: vi.fn().mockResolvedValue(undefined),
+      updateTrade: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({

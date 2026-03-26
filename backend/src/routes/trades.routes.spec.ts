@@ -138,3 +138,81 @@ describe('POST /', () => {
     expect(trades[0].holdingDays).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('PUT /:id', () => {
+  const updateBody = {
+    type: 'futures',
+    position: 'ETH',
+    leverage: 2,
+    volume: 1,
+    buyPrice: 2000,
+    sellPrice: 2200,
+    closeDate: '2024-06-02',
+  };
+
+  beforeEach(() => {
+    vi.mocked(storageService.write).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('returns 200 with enriched trade for valid update', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([MOCK_RAW_TRADE]);
+
+    const res = await request(app)
+      .put('/trade-1')
+      .set('x-trader-username', 'tamas')
+      .send(updateBody);
+
+    expect(res.status).toBe(200);
+    expect(res.body.position).toBe('ETH');
+    expect(res.body.result).toBe('Win');
+  });
+
+  it('returns 404 when trade does not exist', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([]);
+
+    const res = await request(app)
+      .put('/missing-id')
+      .set('x-trader-username', 'tamas')
+      .send(updateBody);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('returns 400 VALIDATION_ERROR when update payload is invalid', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([MOCK_RAW_TRADE]);
+
+    const res = await request(app)
+      .put('/trade-1')
+      .set('x-trader-username', 'tamas')
+      .send({ ...updateBody, sellPrice: 0 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.field).toBe('sellPrice');
+  });
+
+  it('writes updated raw trade to storage preserving id and createdAt', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([MOCK_RAW_TRADE]);
+
+    await request(app)
+      .put('/trade-1')
+      .set('x-trader-username', 'tamas')
+      .send(updateBody);
+
+    expect(storageService.write).toHaveBeenCalledWith(
+      'traders/tamas/trades.json',
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'trade-1',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          position: 'ETH',
+          type: 'futures',
+          leverage: 2,
+        }),
+      ]),
+    );
+  });
+});

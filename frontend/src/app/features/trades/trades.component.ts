@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
-import { FilterState } from '../../core/models/trade.model';
+import { CreateTradeDto, FilterState } from '../../core/models/trade.model';
 import { TradeService } from './trade.service';
 import { TradeFormComponent } from './trade-form/trade-form.component';
 import { TradeFilterBarComponent } from './trade-filter-bar/trade-filter-bar.component';
@@ -79,6 +79,10 @@ export class TradesComponent implements OnInit {
   onClearFilters(): void {
     this.clearCount.update((n) => n + 1);
     this.filterState.set({ position: '', type: '', dateFrom: '', dateTo: '' });
+  }
+
+  async onEditSave(event: { id: string; dto: CreateTradeDto }): Promise<void> {
+    await this.tradeService.updateTrade(event.id, event.dto);
   }
 
   @HostListener('document:keydown.n', ['$event'])

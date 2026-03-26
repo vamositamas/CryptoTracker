@@ -107,4 +107,38 @@ describe('TradeApiService', () => {
       expect(caught?.apiError.field).toBe('position');
     });
   });
+
+  describe('updateTrade', () => {
+    const dto = {
+      type: 'futures',
+      position: 'ETH',
+      leverage: 2,
+      volume: 1,
+      buyPrice: 2000,
+      sellPrice: 2200,
+      closeDate: '2024-06-02',
+    };
+
+    it('PUTs to /api/v1/trades/:id and returns updated enriched trade', async () => {
+      const promise = service.updateTrade('trade-1', dto);
+      const req = httpTesting.expectOne('/api/v1/trades/trade-1');
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(dto);
+      req.flush({ ...ENRICHED, ...dto }, { status: 200, statusText: 'OK' });
+
+      const trade = await promise;
+      expect(trade.position).toBe('ETH');
+      expect(trade.type).toBe('futures');
+    });
+
+    it('throws TradeApiError on 400 with field details', async () => {
+      const apiError = { code: 'VALIDATION_ERROR', message: 'Sell price must be > 0', field: 'sellPrice' };
+      const promise = service.updateTrade('trade-1', dto);
+      httpTesting
+        .expectOne('/api/v1/trades/trade-1')
+        .flush({ error: apiError }, { status: 400, statusText: 'Bad Request' });
+
+      await expect(promise).rejects.toBeInstanceOf(TradeApiError);
+    });
+  });
 });

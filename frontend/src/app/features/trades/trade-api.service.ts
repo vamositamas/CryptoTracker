@@ -36,4 +36,17 @@ export class TradeApiService {
       throw err;
     }
   }
+
+  async updateTrade(id: string, dto: CreateTradeDto): Promise<EnrichedTrade> {
+    try {
+      return await firstValueFrom(
+        this.http.put<EnrichedTrade>(`/api/v1/trades/${id}`, dto),
+      );
+    } catch (err) {
+      if (err instanceof HttpErrorResponse && err.error?.error) {
+        throw new TradeApiError(err.error.error as ApiError, err.status);
+      }
+      throw err;
+    }
+  }
 }

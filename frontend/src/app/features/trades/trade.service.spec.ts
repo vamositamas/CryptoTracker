@@ -38,12 +38,17 @@ const DTO = {
 
 describe('TradeService', () => {
   let service: TradeService;
-  let apiMock: { getTrades: ReturnType<typeof vi.fn>; createTrade: ReturnType<typeof vi.fn> };
+  let apiMock: {
+    getTrades: ReturnType<typeof vi.fn>;
+    createTrade: ReturnType<typeof vi.fn>;
+    updateTrade: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     apiMock = {
       getTrades: vi.fn().mockResolvedValue([BASE_TRADE]),
       createTrade: vi.fn().mockResolvedValue(BASE_TRADE),
+      updateTrade: vi.fn().mockResolvedValue(BASE_TRADE),
     };
 
     TestBed.configureTestingModule({
@@ -117,6 +122,37 @@ describe('TradeService', () => {
     it('marks the new trade with flashNew: true', async () => {
       await service.createTrade(DTO);
       expect(service.trades()[0].flashNew).toBe(true);
+    });
+  });
+
+  describe('updateTrade', () => {
+    const UPDATE_DTO = {
+      type: 'futures',
+      position: 'ETH',
+      leverage: 2,
+      volume: 1,
+      buyPrice: 2000,
+      sellPrice: 2200,
+      closeDate: '2024-06-02',
+    };
+
+    it('optimistically updates the row and then replaces it with server response', async () => {
+      service.trades.set([BASE_TRADE]);
+      apiMock.updateTrade.mockResolvedValue({ ...BASE_TRADE, ...UPDATE_DTO, nettoProfit: 500 });
+
+      await service.updateTrade('trade-1', UPDATE_DTO);
+
+      expect(apiMock.updateTrade).toHaveBeenCalledWith('trade-1', UPDATE_DTO);
+      expect(service.trades()[0].position).toBe('ETH');
+      expect(service.trades()[0].nettoProfit).toBe(500);
+    });
+
+    it('rolls back to snapshot on update failure', async () => {
+      service.trades.set([BASE_TRADE]);
+      apiMock.updateTrade.mockRejectedValue(new Error('update failed'));
+
+      await expect(service.updateTrade('trade-1', UPDATE_DTO)).rejects.toThrow('update failed');
+      expect(service.trades()[0].position).toBe('BTC');
     });
   });
 });

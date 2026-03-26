@@ -100,4 +100,60 @@ router.post('/', auditMiddleware, async (req: Request, res: Response) => {
   res.status(201).json(enriched);
 });
 
+// --- PUT /api/v1/trades/:id ---
+router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
+  const { trader } = req as TraderRequest;
+  const tradeId = req.params['id'];
+
+  if (!tradeId) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Trade id is required', field: 'id' },
+    });
+    return;
+  }
+
+  const body = stripCalculatedFields(req.body as Record<string, unknown>);
+  const validation = validateCreateTradeDto(body);
+  if (!validation.valid) {
+    res.status(400).json({ error: validation.error });
+    return;
+  }
+
+  await ensureTraderDir(trader);
+  const existing = await readTrades(trader);
+  const idx = existing.findIndex((t) => String(t.id) === tradeId);
+  if (idx === -1) {
+    res.status(404).json({
+      error: { code: 'NOT_FOUND', message: 'Trade not found', field: 'id' },
+    });
+    return;
+  }
+
+  const previous = existing[idx];
+  const createdAt = String(previous.createdAt);
+  const nextCloseDate = String(body['closeDate']);
+
+  const updatedRaw: RawTrade = {
+    ...previous,
+    type: String(body['type']),
+    position: String(body['position']),
+    leverage: Number(body['leverage']),
+    volume: Number(body['volume']),
+    buyPrice: Number(body['buyPrice']),
+    sellPrice: Number(body['sellPrice']),
+    closeDate: nextCloseDate,
+    holdingDays: computeHoldingDays(createdAt, nextCloseDate),
+  };
+
+  const nextTrades = [...existing];
+  nextTrades[idx] = updatedRaw;
+  await storageService.write(`traders/${trader}/trades.json`, nextTrades);
+
+  res.locals['auditPreviousValue'] = previous;
+  res.locals['auditRecord'] = updatedRaw;
+
+  const enriched = formulaService.applyAll(updatedRaw);
+  res.status(200).json(enriched);
+});
+
 export default router;

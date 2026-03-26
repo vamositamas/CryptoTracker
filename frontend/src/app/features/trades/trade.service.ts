@@ -66,4 +66,36 @@ export class TradeService {
       throw err;
     }
   }
+
+  async updateTrade(id: string, dto: CreateTradeDto): Promise<void> {
+    const snapshot = this.trades();
+    const target = snapshot.find((t) => t.id === id);
+    if (!target) {
+      this.error.set('Trade not found. Please refresh and try again.');
+      return;
+    }
+
+    this.error.set(null);
+    this.trades.update((ts) =>
+      ts.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              ...dto,
+              holdingDays: 1,
+            }
+          : t,
+      ),
+    );
+
+    try {
+      const saved = await this.api.updateTrade(id, dto);
+      this.trades.update((ts) => ts.map((t) => (t.id === id ? saved : t)));
+    } catch (err) {
+      this.trades.set(snapshot);
+      const message = err instanceof Error ? err.message : 'Failed to update trade. Please try again.';
+      this.error.set(message);
+      throw err;
+    }
+  }
 }
