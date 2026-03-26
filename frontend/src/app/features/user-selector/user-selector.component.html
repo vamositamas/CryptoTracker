@@ -6,8 +6,10 @@
       <p class="text-center text-gray-500">Loading profiles…</p>
     } @else if (error()) {
       <p class="text-center text-red-600">{{ error() }}</p>
+    } @else if (traders().length === 0) {
+      <p class="text-center text-gray-500">No profiles found. Please contact your administrator.</p>
     } @else {
-      <ul class="space-y-3" role="list">
+      <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="list">
         @for (trader of traders(); track trader) {
           <li>
             <button

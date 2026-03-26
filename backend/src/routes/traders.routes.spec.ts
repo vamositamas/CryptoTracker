@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import * as fs from 'fs/promises';
+import { storageService } from '../services/storage.service';
 
-vi.mock('fs/promises');
+vi.mock('../services/storage.service', () => ({
+  storageService: { read: vi.fn() },
+}));
 
 import tradersRouter from './traders.routes';
 
@@ -13,7 +15,7 @@ app.use('/', tradersRouter);
 
 describe('GET /api/v1/traders', () => {
   beforeEach(() => {
-    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(['tamas', 'mark']) as unknown as Buffer);
+    vi.mocked(storageService.read).mockResolvedValue(['tamas', 'mark']);
   });
 
   afterEach(() => {

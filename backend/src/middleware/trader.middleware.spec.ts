@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { traderMiddleware } from './trader.middleware';
 import type { Request, Response, NextFunction } from 'express';
-import * as fs from 'fs/promises';
+import { storageService } from '../services/storage.service';
 
-vi.mock('fs/promises');
+vi.mock('../services/storage.service', () => ({
+  storageService: { read: vi.fn() },
+}));
 
 const TRADERS = ['tamas', 'mark'];
 
@@ -22,7 +24,7 @@ function makeRes(): { status: ReturnType<typeof vi.fn>; json: ReturnType<typeof 
 
 describe('traderMiddleware', () => {
   beforeEach(() => {
-    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(TRADERS) as unknown as Buffer);
+    vi.mocked(storageService.read).mockResolvedValue(TRADERS);
   });
 
   afterEach(() => {
