@@ -8,7 +8,13 @@ export const app = express();
 export const PORT = process.env.PORT || 3001;
 
 // ── Global middleware ──────────────────────────────────────────────────────
-app.use(cors());
+// Restrict CORS to localhost origins only — NFR7: no data leaves the host machine
+app.use(cors({
+  origin: [
+    'http://localhost:4200',  // Angular dev server
+    'http://localhost:3001',  // direct backend access during dev
+  ],
+}));
 app.use(express.json());
 
 // CSP header — required on ALL responses (NFR5, Architecture decision)

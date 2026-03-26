@@ -8,13 +8,15 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'cd ../frontend && npx ng serve --no-open',
+      command: 'npx ng serve --no-open',
+      cwd: '../frontend',
       url: 'http://localhost:4200',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,
     },
     {
-      command: 'cd ../backend && npx ts-node src/server.ts',
+      command: 'npx ts-node src/server.ts',
+      cwd: '../backend',
       url: 'http://localhost:3001/api/v1/health',
       reuseExistingServer: !process.env['CI'],
       timeout: 30000,
