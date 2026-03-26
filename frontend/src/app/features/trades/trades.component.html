@@ -1,0 +1,28 @@
+<main id="main-content" class="px-4 py-6 max-w-7xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">Trades</h1>
+    @if (!showForm()) {
+      <button
+        type="button"
+        (click)="openForm()"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
+        title="New trade (N)"
+      >
+        + New Trade
+      </button>
+    }
+  </div>
+
+  @if (showForm()) {
+    <app-trade-form
+      (saved)="onFormSaved()"
+      (cancelled)="onFormCancelled()"
+    />
+  }
+
+  <app-trade-table
+    [trades]="trades()"
+    [loading]="loading()"
+    (newTrade)="openForm()"
+  />
+</main>
