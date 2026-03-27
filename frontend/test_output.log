@@ -1,0 +1,88 @@
+
+> frontend@0.0.0 test
+> ng test --watch=false
+
+❯ Building...
+✔ Building...
+Initial chunk files                                                     | Names                                                                |  Raw size
+chunk-OTM4YOM2.js                                                       | -                                                                    |  82.60 kB | 
+chunk-AKARSF7O.js                                                       | -                                                                    |  36.56 kB | 
+chunk-YXZ6XOMJ.js                                                       | -                                                                    |  35.92 kB | 
+spec-app-features-audit-audit.component.js                              | spec-app-features-audit-audit.component                              |  32.98 kB | 
+styles.css                                                              | styles                                                               |  32.21 kB | 
+spec-app-features-trades-trade-table-trade-table.component.js           | spec-app-features-trades-trade-table-trade-table.component           |  18.06 kB | 
+spec-app-features-trades-trades.component.js                            | spec-app-features-trades-trades.component                            |  16.62 kB | 
+spec-app-features-dashboard-dashboard.component.js                      | spec-app-features-dashboard-dashboard.component                      |  15.57 kB | 
+spec-app-core-shell-app-shell.component.js                              | spec-app-core-shell-app-shell.component                              |  14.97 kB | 
+chunk-4MYSYMEX.js                                                       | -                                                                    |  13.43 kB | 
+chunk-PD3ZBPMC.js                                                       | -                                                                    |  10.82 kB | 
+spec-app-features-user-selector-user-selector.component.js              | spec-app-features-user-selector-user-selector.component              |  10.29 kB | 
+spec-app-features-master-data-master-data.component.js                  | spec-app-features-master-data-master-data.component                  |   9.53 kB | 
+chunk-3NKHK53F.js                                                       | -                                                                    |   7.34 kB | 
+spec-app-features-trades-trade-form-trade-form.component.js             | spec-app-features-trades-trade-form-trade-form.component             |   7.13 kB | 
+spec-app-features-trades-trade-api.service.js                           | spec-app-features-trades-trade-api.service                           |   5.62 kB | 
+spec-app-features-trades-trade.service.js                               | spec-app-features-trades-trade.service                               |   5.49 kB | 
+spec-app-features-master-data-master-data-table.component.js            | spec-app-features-master-data-master-data-table.component            |   5.08 kB | 
+chunk-RSTWSNOR.js                                                       | -                                                                    |   4.75 kB | 
+chunk-QBAGA6JZ.js                                                       | -                                                                    |   4.58 kB | 
+spec-app-features-dashboard-monthly-table-monthly-table.component.js    | spec-app-features-dashboard-monthly-table-monthly-table.component    |   4.16 kB | 
+chunk-Y6GBU3AD.js                                                       | -                                                                    |   3.90 kB | 
+spec-app-features-master-data-master-data-api.service.js                | spec-app-features-master-data-master-data-api.service                |   3.68 kB | 
+spec-app-features-trades-trade-filter-bar-trade-filter-bar.component.js | spec-app-features-trades-trade-filter-bar-trade-filter-bar.component |   3.45 kB | 
+chunk-WHV4IYXU.js                                                       | -                                                                    |   3.38 kB | 
+spec-app-core-services-i18n-title.strategy.js                           | spec-app-core-services-i18n-title.strategy                           |   3.15 kB | 
+chunk-FTS5YGVH.js                                                       | -                                                                    |   2.87 kB | 
+spec-app-core-interceptors-trader-header.interceptor.js                 | spec-app-core-interceptors-trader-header.interceptor                 |   2.40 kB | 
+spec-app-features-dashboard-kpi-card-kpi-card.component.js              | spec-app-features-dashboard-kpi-card-kpi-card.component              |   2.25 kB | 
+spec-app-core-shell-language-toggle.component.js                        | spec-app-core-shell-language-toggle.component                        |   2.20 kB | 
+spec-app-features-audit-audit-api.service.js                            | spec-app-features-audit-audit-api.service                            |   2.15 kB | 
+chunk-ZV2IN6WB.js                                                       | -                                                                    |   2.13 kB | 
+spec-app-features-dashboard-dashboard-api.service.js                    | spec-app-features-dashboard-dashboard-api.service                    |   1.98 kB | 
+spec-app-core-guards-trader.guard.js                                    | spec-app-core-guards-trader.guard                                    |   1.91 kB | 
+spec-app-core-services-user.service.js                                  | spec-app-core-services-user.service                                  |   1.88 kB | 
+spec-app-app.js                                                         | spec-app-app                                                         |   1.82 kB | 
+chunk-S3CDXR6M.js                                                       | -                                                                    |   1.69 kB | 
+spec-app-core-services-language.service.js                              | spec-app-core-services-language.service                              |   1.60 kB | 
+init-testbed.js                                                         | init-testbed                                                         |   1.21 kB | 
+chunk-MAKGGNZB.js                                                       | -                                                                    |   1.13 kB | 
+chunk-NPKB4UG4.js                                                       | -                                                                    |   1.11 kB | 
+chunk-AJMNI5KZ.js                                                       | -                                                                    | 985 bytes | 
+vitest-mock-patch.js                                                    | vitest-mock-patch                                                    | 704 bytes | 
+
+                                                                        | Initial total                                                        | 421.28 kB
+
+Application bundle generation complete. [1.380 seconds] - 2026-03-27T12:21:56.167Z
+
+
+[1m[46m RUN [49m[22m [36mv4.1.1 [39m[90m/Volumes/Data/Development/VibeCode/BMadTest/crypto-tracker/frontend[39m
+
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/dashboard/monthly-table/monthly-table.component.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 70[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/master-data/master-data.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trade-filter-bar/trade-filter-bar.component.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 93[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/master-data/master-data-table.component.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 93[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/dashboard/dashboard.component.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/master-data/master-data-api.service.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/dashboard/kpi-card/kpi-card.component.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/user.service.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trade-api.service.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trade.service.spec.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/audit/audit.component.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 185[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/app.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trades.component.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 202[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trade-form/trade-form.component.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 228[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/dashboard/dashboard-api.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/shell/language-toggle.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/guards/trader.guard.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/shell/app-shell.component.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/language.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/interceptors/trader-header.interceptor.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/audit/audit-api.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/user-selector/user-selector.component.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/features/trades/trade-table/trade-table.component.spec.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 337[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/i18n-title.strategy.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m24 passed[39m[22m[90m (24)[39m
+[2m      Tests [22m [1m[32m153 passed[39m[22m[90m (153)[39m
+[2m   Start at [22m 13:21:56
+[2m   Duration [22m 1.29s[2m (transform 765ms, setup 2.32s, import 1.79s, tests 1.55s, environment 12.27s)[22m
+
