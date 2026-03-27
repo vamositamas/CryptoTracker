@@ -26,33 +26,72 @@ export class TradesComponent implements OnInit {
   readonly importing = signal(false);
   readonly filterState = signal<FilterState>({
     position: '',
+    tradePosition: '',
     type: '',
+    result: '',
     dateFrom: '',
     dateTo: '',
   });
-  readonly clearCount = signal(0);
 
   private deleteToastTimer: ReturnType<typeof setTimeout> | null = null;
   private importToastTimer: ReturnType<typeof setTimeout> | null = null;
 
+  private readonly today = new Date().toISOString().split('T')[0];
+
+  readonly totalCount = computed(() => this.trades().length);
+  readonly winCount = computed(() => this.trades().filter((t) => t.result === 'Win').length);
+  readonly lossCount = computed(() => this.trades().filter((t) => t.result === 'Loss').length);
+  readonly todayCount = computed(() => this.trades().filter((t) => t.closeDate === this.today).length);
+
+  readonly activeKpi = computed<'all' | 'wins' | 'losses' | 'today' | null>(() => {
+    const f = this.filterState();
+    const noDropdownFilters = !f.position && !f.tradePosition && !f.type;
+    if (!noDropdownFilters) return null;
+    if (!f.result && !f.dateFrom && !f.dateTo) return 'all';
+    if (f.result === 'Win' && !f.dateFrom && !f.dateTo) return 'wins';
+    if (f.result === 'Loss' && !f.dateFrom && !f.dateTo) return 'losses';
+    if (f.dateFrom === this.today && f.dateTo === this.today && !f.result) return 'today';
+    return null;
+  });
+
+  readonly availableTokens = computed(() =>
+    [...new Set(this.trades().map((t) => t.position))].sort()
+  );
+
+  readonly availablePositions = computed(() =>
+    [...new Set(this.trades().map((t) => t.tradePosition).filter((p): p is string => !!p))].sort()
+  );
+
+  readonly availableTypes = computed(() =>
+    [...new Set(this.trades().map((t) => t.type).filter((t): t is string => !!t))].sort()
+  );
+
   readonly hasActiveFilters = computed(() => {
     const f = this.filterState();
-    return !!(f.position || f.type || f.dateFrom || f.dateTo);
+    return !!(f.position || f.tradePosition || f.type || f.result || f.dateFrom || f.dateTo);
   });
 
   readonly filteredTrades = computed(() => {
     const list = this.trades();
     const f = this.filterState();
-    const positionNeedle = f.position.trim().toLowerCase();
+    const positionFilter = f.position;
+    const tradePositionFilter = f.tradePosition;
     const typeNeedle = f.type.trim().toLowerCase();
+    const resultFilter = f.result;
     const dateFrom = f.dateFrom;
     const dateTo = f.dateTo;
 
     return list.filter((trade) => {
-      if (positionNeedle && !trade.position.toLowerCase().includes(positionNeedle)) {
+      if (positionFilter && trade.position !== positionFilter) {
         return false;
       }
-      if (typeNeedle && !trade.type.toLowerCase().includes(typeNeedle)) {
+      if (tradePositionFilter && trade.tradePosition !== tradePositionFilter) {
+        return false;
+      }
+      if (typeNeedle && trade.type.toLowerCase() !== typeNeedle) {
+        return false;
+      }
+      if (resultFilter && trade.result !== resultFilter) {
         return false;
       }
       if (dateFrom && trade.closeDate < dateFrom) {
@@ -86,8 +125,29 @@ export class TradesComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    this.clearCount.update((n) => n + 1);
-    this.filterState.set({ position: '', type: '', dateFrom: '', dateTo: '' });
+    this.filterState.set({ position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' });
+  }
+
+  onKpiClick(kpi: 'all' | 'wins' | 'losses' | 'today'): void {
+    if (this.activeKpi() === kpi) {
+      this.onClearFilters();
+      return;
+    }
+    const base: FilterState = { position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' };
+    switch (kpi) {
+      case 'all':
+        this.filterState.set(base);
+        break;
+      case 'wins':
+        this.filterState.set({ ...base, result: 'Win' });
+        break;
+      case 'losses':
+        this.filterState.set({ ...base, result: 'Loss' });
+        break;
+      case 'today':
+        this.filterState.set({ ...base, dateFrom: this.today, dateTo: this.today });
+        break;
+    }
   }
 
   async onEditSave(event: {

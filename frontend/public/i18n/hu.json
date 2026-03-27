@@ -119,12 +119,27 @@
     "filters": {
       "title": "Szűrők",
       "token": "Token",
+      "tokenAll": "Minden token",
+      "tradePosition": "Pozíció",
+      "tradePositionAll": "Minden pozíció",
       "type": "Típus",
+      "typeAll": "Minden típus",
       "from": "Ettől",
       "to": "Eddig",
       "tokenPlaceholder": "pl. BTC",
       "typePlaceholder": "pl. long",
-      "clearAll": "Összes törlése"
+      "searchPlaceholder": "Token keresése...",
+      "result": "Eredmény",
+      "resultAll": "Minden eredmény",
+      "resultWin": "Nyerő",
+      "resultLoss": "Veszítő",
+      "clearAll": "Szűrők törlése"
+    },
+    "stats": {
+      "total": "Összes kötés",
+      "wins": "Nyerők",
+      "losses": "Veszítők",
+      "today": "Ma"
     },
     "form": {
       "title": "Új kötés",

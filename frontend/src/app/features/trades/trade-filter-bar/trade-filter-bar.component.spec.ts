@@ -24,7 +24,9 @@ describe('TradeFilterBarComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('#filter-position')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#filter-trade-position')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-type')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#filter-result')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-date-from')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-date-to')).not.toBeNull();
   });
@@ -41,7 +43,9 @@ describe('TradeFilterBarComponent', () => {
 
     expect(emitSpy).toHaveBeenCalledWith({
       position: 'BTC',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
@@ -56,7 +60,9 @@ describe('TradeFilterBarComponent', () => {
 
     fixture.componentInstance.form.patchValue({
       position: 'BTC',
+      tradePosition: 'Long',
       type: 'spot',
+      result: 'Win',
       dateFrom: '2024-01-01',
       dateTo: '2024-12-31',
     });
@@ -67,40 +73,61 @@ describe('TradeFilterBarComponent', () => {
 
     expect(fixture.componentInstance.form.value).toEqual({
       position: '',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
     expect(emitSpy).toHaveBeenLastCalledWith({
       position: '',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
   });
 
-  it('clearCount input triggers programmatic reset and emit', async () => {
+  it('value input patches form and syncs dropdowns', async () => {
     const fixture = TestBed.createComponent(TradeFilterBarComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const emitSpy = vi.spyOn(fixture.componentInstance.filterChange, 'emit');
+    fixture.componentRef.setInput('value', {
+      position: 'BTC',
+      tradePosition: 'Long',
+      type: 'Scalp',
+      result: 'Win',
+      dateFrom: '2024-01-01',
+      dateTo: '2024-12-31',
+    });
+    fixture.detectChanges();
 
-    fixture.componentInstance.form.patchValue({ position: 'ETH', type: 'futures' });
-    vi.advanceTimersByTime(151);
+    expect(fixture.componentInstance.form.value).toEqual({
+      position: 'BTC',
+      tradePosition: 'Long',
+      type: 'Scalp',
+      result: 'Win',
+      dateFrom: '2024-01-01',
+      dateTo: '2024-12-31',
+    });
 
-    fixture.componentRef.setInput('clearCount', 1);
+    fixture.componentRef.setInput('value', {
+      position: '',
+      tradePosition: '',
+      type: '',
+      result: '',
+      dateFrom: '',
+      dateTo: '',
+    });
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.value).toEqual({
       position: '',
+      tradePosition: '',
       type: '',
-      dateFrom: '',
-      dateTo: '',
-    });
-    expect(emitSpy).toHaveBeenLastCalledWith({
-      position: '',
-      type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });

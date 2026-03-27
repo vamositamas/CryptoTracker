@@ -15,46 +15,42 @@ export class TradeFilterBarComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  /**
-   * Increment this input to programmatically clear all filters from the parent.
-   * Filter bar reacts via effect() and resets its form.
-   */
-  readonly clearCount = input<number>(0);
+  readonly value = input<FilterState>({ position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' });
+  readonly tokens = input<string[]>([]);
+  readonly positions = input<string[]>([]);
+  readonly types = input<string[]>([]);
 
   readonly filterChange = output<FilterState>();
 
   readonly form = this.fb.group({
     position: [''],
+    tradePosition: [''],
     type: [''],
+    result: [''],
     dateFrom: [''],
     dateTo: [''],
   });
 
   get hasValues(): boolean {
     const v = this.form.value;
-    return !!(v.position || v.type || v.dateFrom || v.dateTo);
+    return !!(v.position || v.tradePosition || v.type || v.result || v.dateFrom || v.dateTo);
   }
 
   constructor() {
-    // React to parent-driven clear requests
+    // Sync form when parent drives value (KPI clicks, clear, programmatic resets)
     effect(() => {
-      const count = this.clearCount();
-      if (count > 0) {
-        this.form.reset(
-          { position: '', type: '', dateFrom: '', dateTo: '' },
-          { emitEvent: false },
-        );
-        this.filterChange.emit({ position: '', type: '', dateFrom: '', dateTo: '' });
-      }
+      this.form.patchValue(this.value(), { emitEvent: false });
     });
 
-    // Emit on every form value change
+    // Emit on every user-driven form value change
     this.form.valueChanges
       .pipe(debounceTime(150), takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => {
         this.filterChange.emit({
           position: val.position ?? '',
+          tradePosition: val.tradePosition ?? '',
           type: val.type ?? '',
+          result: val.result ?? '',
           dateFrom: val.dateFrom ?? '',
           dateTo: val.dateTo ?? '',
         });
@@ -62,7 +58,7 @@ export class TradeFilterBarComponent {
   }
 
   clearAll(): void {
-    this.form.reset({ position: '', type: '', dateFrom: '', dateTo: '' });
+    this.form.reset({ position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' });
     // valueChanges fires → emits empty FilterState via the subscription above
   }
 }

@@ -57,7 +57,9 @@ export interface TradeImportResponse {
 /** Active filter values for the trade list. Empty string means "no filter on this field". */
 export interface FilterState {
   position: string;
+  tradePosition: string;
   type: string;
+  result: string;
   dateFrom: string;
   dateTo: string;
 }

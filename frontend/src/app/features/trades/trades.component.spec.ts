@@ -72,15 +72,17 @@ describe('TradesComponent', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('filters by position (case-insensitive partial match)', async () => {
+  it('filters by token (exact match)', async () => {
     const fixture = TestBed.createComponent(TradesComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'bt',
+      position: 'BTC',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
@@ -97,13 +99,15 @@ describe('TradesComponent', () => {
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
       position: '',
+      tradePosition: '',
       type: 'spot',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.filteredTrades().map((t) => t.id)).toEqual(['a', 'c']);
+    expect(fixture.componentInstance.filteredTrades().map((t) => t.id)).toEqual(['a', 'c']); // TRADE_B is futures
   });
 
   it('filters by date range (inclusive)', async () => {
@@ -114,7 +118,9 @@ describe('TradesComponent', () => {
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
       position: '',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '2024-05-01',
       dateTo: '2024-06-01',
     });
@@ -130,8 +136,10 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'et',
-      type: 'fut',
+      position: 'ETH',
+      tradePosition: '',
+      type: 'futures',
+      result: '',
       dateFrom: '2024-05-01',
       dateTo: '2024-05-31',
     });
@@ -147,8 +155,10 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B]);
     fixture.componentInstance.onFilterChange({
-      position: 'xrp',
+      position: 'XRP',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });
@@ -165,8 +175,10 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'btc',
+      position: 'BTC',
+      tradePosition: '',
       type: '',
+      result: '',
       dateFrom: '',
       dateTo: '',
     });

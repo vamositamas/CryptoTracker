@@ -119,12 +119,27 @@
     "filters": {
       "title": "Filters",
       "token": "Token",
+      "tokenAll": "All tokens",
+      "tradePosition": "Position",
+      "tradePositionAll": "All positions",
       "type": "Type",
+      "typeAll": "All types",
       "from": "From",
       "to": "To",
       "tokenPlaceholder": "e.g. BTC",
       "typePlaceholder": "e.g. long",
-      "clearAll": "Clear all"
+      "searchPlaceholder": "Search token...",
+      "result": "Result",
+      "resultAll": "All results",
+      "resultWin": "Win",
+      "resultLoss": "Loss",
+      "clearAll": "Clear filters"
+    },
+    "stats": {
+      "total": "Total Trades",
+      "wins": "Wins",
+      "losses": "Losses",
+      "today": "Today"
     },
     "form": {
       "title": "New Trade",
