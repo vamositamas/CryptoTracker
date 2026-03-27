@@ -5,6 +5,7 @@ import { DashboardApiService } from './dashboard-api.service';
 import { KpiData, MonthlyData } from './dashboard.model';
 import { provideRouter } from '@angular/router';
 import { ComponentFixture } from '@angular/core/testing';
+import { provideTranslateTesting } from '../../../testing/translate-test.providers';
 
 const MOCK_KPI: KpiData = {
   totalTrades: 10,
@@ -55,6 +56,7 @@ describe('DashboardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
+        ...provideTranslateTesting(),
         { provide: DashboardApiService, useValue: apiMock },
         provideRouter([]),
       ],
@@ -93,7 +95,7 @@ describe('DashboardComponent', () => {
 
     await component.ngOnInit();
 
-    expect(component.error()).toBe('Failed to load dashboard data. Please try again.');
+    expect(component.error()).toBe('dashboard.errors.loadFailed');
     expect(component.loading()).toBe(false);
   });
 
@@ -137,12 +139,12 @@ describe('DashboardComponent', () => {
     expect(fixture.componentInstance.winRateDisplay()).toBe('70.0%');
   });
 
-  it('displays "—" for bestSingleTrade when null', () => {
+  it('displays "-" for bestSingleTrade when null', () => {
     const fixture = createComponent();
 
     fixture.componentInstance.kpis.set({ ...MOCK_KPI, bestSingleTrade: null });
 
-    expect(fixture.componentInstance.bestSingleTradeDisplay()).toBe('—');
+    expect(fixture.componentInstance.bestSingleTradeDisplay()).toBe('-');
   });
 
   it('renders 4 KPI cards when data is loaded', () => {

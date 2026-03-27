@@ -143,6 +143,71 @@ describe('POST /', () => {
   });
 });
 
+describe('POST /import', () => {
+  const importBody = {
+    trades: [
+      {
+        type: 'scalp',
+        token: 'DOT',
+        position: 'DOT',
+        tradePosition: 'short',
+        brokerCost: 0.06,
+        leverage: 10,
+        volume: 47.8,
+        buyPrice: 2.092,
+        sellPrice: 2.079,
+        closeDate: '2026-01-09',
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(storageService.read).mockRejectedValue(new Error('ENOENT'));
+    vi.mocked(storageService.write).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('imports all rows and returns enriched trades', async () => {
+    const res = await request(app)
+      .post('/import')
+      .set('x-trader-username', 'tamas')
+      .send(importBody);
+
+    expect(res.status).toBe(201);
+    expect(res.body.imported).toBe(1);
+    expect(res.body.trades[0]).toMatchObject({ position: 'DOT', tradePosition: 'short' });
+  });
+
+  it('rejects an empty trades payload', async () => {
+    const res = await request(app)
+      .post('/import')
+      .set('x-trader-username', 'tamas')
+      .send({ trades: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.field).toBe('trades');
+  });
+
+  it('returns row-specific validation errors without writing partial imports', async () => {
+    const res = await request(app)
+      .post('/import')
+      .set('x-trader-username', 'tamas')
+      .send({
+        trades: [
+          importBody.trades[0],
+          { ...importBody.trades[0], buyPrice: 0 },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.field).toBe('buyPrice');
+    expect(res.body.error.message).toContain('Row 3');
+    expect(storageService.write).not.toHaveBeenCalled();
+  });
+});
+
 describe('PUT /:id', () => {
   const updateBody = {
     type: 'futures',

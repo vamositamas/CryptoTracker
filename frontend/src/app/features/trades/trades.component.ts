@@ -1,14 +1,16 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { CreateTradeDto, FilterState } from '../../core/models/trade.model';
 import { TradeService } from './trade.service';
 import { TradeFormComponent } from './trade-form/trade-form.component';
 import { TradeFilterBarComponent } from './trade-filter-bar/trade-filter-bar.component';
 import { TradeTableComponent } from './trade-table/trade-table.component';
+import { readTradeWorkbook } from './trade-import.parser';
 
 @Component({
   selector: 'app-trades',
   standalone: true,
-  imports: [TradeFormComponent, TradeFilterBarComponent, TradeTableComponent],
+  imports: [TranslatePipe, TradeFormComponent, TradeFilterBarComponent, TradeTableComponent],
   templateUrl: './trades.component.html',
 })
 export class TradesComponent implements OnInit {
@@ -19,6 +21,9 @@ export class TradesComponent implements OnInit {
 
   readonly showForm = signal(false);
   readonly deleteErrorToast = signal<string | null>(null);
+  readonly importSuccess = signal<{ count: number; fileName: string } | null>(null);
+  readonly importError = signal<string | null>(null);
+  readonly importing = signal(false);
   readonly filterState = signal<FilterState>({
     position: '',
     type: '',
@@ -28,6 +33,7 @@ export class TradesComponent implements OnInit {
   readonly clearCount = signal(0);
 
   private deleteToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private importToastTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly hasActiveFilters = computed(() => {
     const f = this.filterState();
@@ -102,7 +108,7 @@ export class TradesComponent implements OnInit {
     try {
       await this.tradeService.deleteTrade(id);
     } catch {
-      const message = this.tradeService.error() ?? 'Failed to delete trade. Please try again.';
+      const message = this.tradeService.error() ?? 'trades.toasts.deleteFailed';
       this.deleteErrorToast.set(message);
       if (this.deleteToastTimer) {
         clearTimeout(this.deleteToastTimer);
@@ -110,6 +116,44 @@ export class TradesComponent implements OnInit {
       this.deleteToastTimer = setTimeout(() => {
         this.deleteErrorToast.set(null);
       }, 4000);
+    }
+  }
+
+  async onImportFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.importing.set(true);
+    this.importSuccess.set(null);
+    this.importError.set(null);
+
+    try {
+      const trades = await readTradeWorkbook(file);
+      const importedCount = await this.tradeService.importTrades(trades);
+      this.importSuccess.set({ count: importedCount, fileName: file.name });
+      if (this.importToastTimer) {
+        clearTimeout(this.importToastTimer);
+      }
+      this.importToastTimer = setTimeout(() => {
+        this.importSuccess.set(null);
+      }, 5000);
+    } catch (err) {
+      this.importError.set(err instanceof Error ? err.message : 'trades.import.errors.failed');
+      if (this.importToastTimer) {
+        clearTimeout(this.importToastTimer);
+      }
+      this.importToastTimer = setTimeout(() => {
+        this.importError.set(null);
+      }, 5000);
+    } finally {
+      this.importing.set(false);
+      if (input) {
+        input.value = '';
+      }
     }
   }
 

@@ -2,11 +2,12 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-user-selector',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './user-selector.component.html',
 })
 export class UserSelectorComponent implements OnInit {
@@ -23,7 +24,7 @@ export class UserSelectorComponent implements OnInit {
       const list = await firstValueFrom(this.http.get<string[]>('/api/v1/traders'));
       this.traders.set(list);
     } catch {
-      this.error.set('Failed to load trader profiles. Please refresh.');
+      this.error.set('userSelector.errors.loadFailed');
     } finally {
       this.loading.set(false);
     }

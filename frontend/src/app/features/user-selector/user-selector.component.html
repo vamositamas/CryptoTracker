@@ -1,13 +1,13 @@
 <div class="min-h-screen bg-gray-50 flex items-center justify-center">
   <div class="w-full max-w-md px-4">
-    <h1 class="text-2xl font-semibold text-gray-900 text-center mb-8">Select your profile</h1>
+    <h1 class="text-2xl font-semibold text-gray-900 text-center mb-8">{{ 'userSelector.title' | translate }}</h1>
 
     @if (loading()) {
-      <p class="text-center text-gray-500">Loading profiles…</p>
+      <p class="text-center text-gray-500">{{ 'userSelector.loading' | translate }}</p>
     } @else if (error()) {
-      <p class="text-center text-red-600">{{ error() }}</p>
+      <p class="text-center text-red-600">{{ error()! | translate }}</p>
     } @else if (traders().length === 0) {
-      <p class="text-center text-gray-500">No profiles found. Please contact your administrator.</p>
+      <p class="text-center text-gray-500">{{ 'userSelector.empty' | translate }}</p>
     } @else {
       <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="list">
         @for (trader of traders(); track trader) {

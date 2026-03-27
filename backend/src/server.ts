@@ -7,6 +7,7 @@ import { formulaService } from './services/formula.service';
 import tradersRouter from './routes/traders.routes';
 import tradesRouter from './routes/trades.routes';
 import masterDataRouter from './routes/master-data.routes';
+import formulasRouter from './routes/formulas.routes';
 import auditRouter from './routes/audit.routes';
 import dashboardRouter from './routes/dashboard.routes';
 
@@ -47,6 +48,7 @@ app.get('/api/v1/health', (_req, res) => {
 // Shared routes (no trader scope required)
 app.use('/api/v1/traders', tradersRouter);
 app.use('/api/v1/master-data', masterDataRouter);
+app.use('/api/v1/formulas', formulasRouter);
 
 // Per-trader routes (traderMiddleware applied inside each router)
 app.use('/api/v1/trades', tradesRouter);

@@ -1,13 +1,14 @@
 import { Component, DestroyRef, effect, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { debounceTime } from 'rxjs/operators';
 import { FilterState } from '../../../core/models/trade.model';
 
 @Component({
   selector: 'app-trade-filter-bar',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './trade-filter-bar.component.html',
 })
 export class TradeFilterBarComponent {

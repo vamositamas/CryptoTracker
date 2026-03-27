@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { TradesComponent } from './trades.component';
 import { TradeService, TradeWithMeta } from './trade.service';
+import { provideTranslateTesting } from '../../../testing/translate-test.providers';
 
 const TRADE_A: TradeWithMeta = {
   id: 'a',
@@ -65,7 +66,7 @@ describe('TradesComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [TradesComponent],
-      providers: [{ provide: TradeService, useValue: tradeServiceMock }],
+      providers: [...provideTranslateTesting(), { provide: TradeService, useValue: tradeServiceMock }],
     }).compileComponents();
   });
 

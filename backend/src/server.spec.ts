@@ -45,6 +45,14 @@ describe('GET /api/v1/dashboard', () => {
   });
 });
 
+describe('GET /api/v1/master-data', () => {
+  it('is mounted and does not require trader identity', async () => {
+    const res = await request(app).get('/api/v1/master-data/invalid-type');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_MASTER_DATA_TYPE');
+  });
+});
+
 describe('GET /data (403 guard)', () => {
   it('returns 403 when accessing /data directly', async () => {
     const res = await request(app).get('/data/anything.json');

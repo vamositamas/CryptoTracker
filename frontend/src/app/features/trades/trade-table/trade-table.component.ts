@@ -1,14 +1,18 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TradeWithMeta } from '../trade.service';
 import { CreateTradeDto } from '../../../core/models/trade.model';
+import { MasterDataApiService } from '../../master-data/master-data-api.service';
 
 export type { TradeWithMeta };
 
 export type SortableColumn =
   | 'closeDate'
   | 'position'
+  | 'tradePosition'
   | 'type'
+  | 'brokerCost'
   | 'leverage'
   | 'volume'
   | 'buyPrice'
@@ -20,10 +24,12 @@ export type SortableColumn =
 @Component({
   selector: 'app-trade-table',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, DatePipe],
+  imports: [CommonModule, DecimalPipe, DatePipe, TranslatePipe],
   templateUrl: './trade-table.component.html',
 })
-export class TradeTableComponent {
+export class TradeTableComponent implements OnInit {
+  private readonly masterDataApi = inject(MasterDataApiService);
+
   readonly trades = input<TradeWithMeta[]>([]);
   readonly loading = input<boolean>(false);
   readonly hasActiveFilters = input<boolean>(false);
@@ -42,8 +48,11 @@ export class TradeTableComponent {
   readonly deleteConfirmId = signal<string | null>(null);
   readonly savingEdit = signal(false);
   readonly draft = signal<CreateTradeDto>({
+    token: '',
     type: '',
     position: '',
+    tradePosition: 'long',
+    brokerCost: 0,
     leverage: 1,
     volume: 0,
     buyPrice: 0,
@@ -51,9 +60,35 @@ export class TradeTableComponent {
     closeDate: '',
   });
   readonly fieldErrors = signal<Partial<Record<keyof CreateTradeDto, string>>>({});
+  readonly tokens = signal<string[]>([]);
+  readonly positions = signal<string[]>([]);
+  readonly tradeTypes = signal<string[]>([]);
+  readonly tokenOptions = computed(() => this.withDraftValue(this.tokens(), String(this.draft().token ?? this.draft().position ?? '').trim()));
+  readonly positionOptions = computed(() => this.withDraftValue(this.positions(), String(this.draft().tradePosition ?? '').trim()));
+  readonly typeOptions = computed(() => this.withDraftValue(this.tradeTypes(), String(this.draft().type ?? '').trim()));
 
   readonly sortCol = signal<SortableColumn | null>(null);
   readonly sortDir = signal<'asc' | 'desc'>('asc');
+
+  async ngOnInit(): Promise<void> {
+    const [tokens, positions, tradeTypes] = await Promise.allSettled([
+      this.masterDataApi.getTokens(),
+      this.masterDataApi.getPositions(),
+      this.masterDataApi.getTradeTypes(),
+    ]);
+
+    if (tokens.status === 'fulfilled') {
+      this.tokens.set(tokens.value);
+    }
+
+    if (positions.status === 'fulfilled') {
+      this.positions.set(positions.value);
+    }
+
+    if (tradeTypes.status === 'fulfilled') {
+      this.tradeTypes.set(tradeTypes.value);
+    }
+  }
 
   readonly sortedTrades = computed(() => {
     const col = this.sortCol();
@@ -88,6 +123,15 @@ export class TradeTableComponent {
     return this.sortDir() === 'asc' ? 'ascending' : 'descending';
   }
 
+  getSortButtonLabel(col: SortableColumn, colName: string): string {
+    const currentSort = this.ariaSort(col);
+    if (!currentSort) {
+      return `Sort by ${colName}`;
+    }
+    const direction = currentSort === 'ascending' ? 'ascending' : 'descending';
+    return `${colName}, currently sorted ${direction}. Activate to change sort.`;
+  }
+
   onNewTrade(): void {
     this.newTrade.emit();
   }
@@ -104,14 +148,35 @@ export class TradeTableComponent {
     this.editingId.set(trade.id);
     this.fieldErrors.set({});
     this.draft.set({
+      token: trade.position,
       type: trade.type,
       position: trade.position,
+      tradePosition: trade.tradePosition ?? 'long',
+      brokerCost: trade.brokerCost ?? 0,
       leverage: trade.leverage,
       volume: trade.volume,
       buyPrice: trade.buyPrice,
       sellPrice: trade.sellPrice,
       closeDate: trade.closeDate,
     });
+  }
+
+  onRowKeydown(event: KeyboardEvent, trade: TradeWithMeta): void {
+    if (this.isEditing(trade.id)) {
+      return;
+    }
+
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, input, select, textarea, a')) {
+      return;
+    }
+
+    event.preventDefault();
+    this.startEdit(trade);
   }
 
   cancelEdit(): void {
@@ -137,7 +202,17 @@ export class TradeTableComponent {
   }
 
   setDraftField<K extends keyof CreateTradeDto>(field: K, value: CreateTradeDto[K]): void {
-    this.draft.update((d) => ({ ...d, [field]: value }));
+    this.draft.update((draft) => {
+      if (field === 'token' || field === 'position') {
+        return {
+          ...draft,
+          token: value as CreateTradeDto['token'],
+          position: value as CreateTradeDto['position'],
+        };
+      }
+
+      return { ...draft, [field]: value };
+    });
   }
 
   onSaveEdit(): void {
@@ -179,32 +254,63 @@ export class TradeTableComponent {
     return Number(value);
   }
 
+  private withDraftValue(options: string[], current: string): string[] {
+    if (!current) {
+      return options;
+    }
+
+    return options.includes(current) ? options : [current, ...options];
+  }
+
+  @HostListener('window:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
+    if (!this.editingId() && !this.deleteConfirmId()) {
+      return;
+    }
+    event.preventDefault();
+    if (this.editingId()) {
+      this.cancelEdit();
+    }
+    if (this.deleteConfirmId()) {
+      this.cancelDeleteConfirm();
+    }
+  }
+
   private validateDraft(): CreateTradeDto | null {
     const d = this.draft();
     const errors: Partial<Record<keyof CreateTradeDto, string>> = {};
 
+    const token = String(d.token ?? d.position ?? '').trim();
     const type = String(d.type ?? '').trim();
     const position = String(d.position ?? '').trim();
+    const tradePosition = String(d.tradePosition ?? '').trim();
+    const brokerCost = Number(d.brokerCost ?? 0);
     const leverage = Number(d.leverage);
     const volume = Number(d.volume);
     const buyPrice = Number(d.buyPrice);
     const sellPrice = Number(d.sellPrice);
     const closeDate = String(d.closeDate ?? '').trim();
 
-    if (!type) errors.type = 'Trade type is required';
-    if (!position) errors.position = 'Token is required';
-    if (isNaN(leverage) || leverage <= 0) errors.leverage = 'Leverage must be greater than 0';
-    if (isNaN(volume) || volume <= 0) errors.volume = 'Volume must be greater than 0';
-    if (isNaN(buyPrice) || buyPrice <= 0) errors.buyPrice = 'Buy price must be greater than 0';
-    if (isNaN(sellPrice) || sellPrice <= 0) errors.sellPrice = 'Sell price must be greater than 0';
-    if (!closeDate || isNaN(Date.parse(closeDate))) errors.closeDate = 'Close date is required';
+    if (!token) errors.token = 'trades.table.edit.errors.required.token';
+    if (!type) errors.type = 'trades.table.edit.errors.required.type';
+    if (!position) errors.position = 'trades.table.edit.errors.required.position';
+    if (!tradePosition) errors.tradePosition = 'trades.table.edit.errors.required.tradePosition';
+    if (isNaN(brokerCost) || brokerCost < 0) errors.brokerCost = 'trades.table.edit.errors.min.brokerCost';
+    if (isNaN(leverage) || leverage <= 0) errors.leverage = 'trades.table.edit.errors.min.leverage';
+    if (isNaN(volume) || volume <= 0) errors.volume = 'trades.table.edit.errors.min.volume';
+    if (isNaN(buyPrice) || buyPrice <= 0) errors.buyPrice = 'trades.table.edit.errors.min.buyPrice';
+    if (isNaN(sellPrice) || sellPrice <= 0) errors.sellPrice = 'trades.table.edit.errors.min.sellPrice';
+    if (!closeDate || isNaN(Date.parse(closeDate))) errors.closeDate = 'trades.table.edit.errors.required.closeDate';
 
     this.fieldErrors.set(errors);
     if (Object.keys(errors).length > 0) return null;
 
     return {
+      token,
       type,
-      position,
+      position: token,
+      tradePosition,
+      brokerCost,
       leverage,
       volume,
       buyPrice,

@@ -25,6 +25,16 @@ export function validateCreateTradeDto(body: Record<string, unknown>): Validatio
     }
   }
 
+  if ('tradePosition' in body) {
+    const tradePosition = body['tradePosition'];
+    if (typeof tradePosition !== 'string' || tradePosition.trim() === '') {
+      return {
+        valid: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Trade position is required', field: 'tradePosition' },
+      };
+    }
+  }
+
   const positiveNumbers: Array<[string, string]> = [
     ['leverage', 'Leverage must be a number greater than 0'],
     ['volume', 'Volume must be a number greater than 0'],
@@ -40,6 +50,16 @@ export function validateCreateTradeDto(body: Record<string, unknown>): Validatio
     const num = Number(value);
     if (isNaN(num) || num <= 0) {
       return { valid: false, error: { code: 'VALIDATION_ERROR', message, field } };
+    }
+  }
+
+  if (body['brokerCost'] !== undefined && body['brokerCost'] !== null && body['brokerCost'] !== '') {
+    const brokerCost = Number(body['brokerCost']);
+    if (isNaN(brokerCost) || brokerCost < 0) {
+      return {
+        valid: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Broker cost must be a number greater than or equal to 0', field: 'brokerCost' },
+      };
     }
   }
 

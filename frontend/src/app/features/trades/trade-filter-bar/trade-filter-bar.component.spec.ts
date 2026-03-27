@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { TradeFilterBarComponent } from './trade-filter-bar.component';
+import { provideTranslateTesting } from '../../../../testing/translate-test.providers';
 
 describe('TradeFilterBarComponent', () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     await TestBed.configureTestingModule({
       imports: [TradeFilterBarComponent],
+      providers: [...provideTranslateTesting()],
     }).compileComponents();
   });
 

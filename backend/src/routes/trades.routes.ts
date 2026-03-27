@@ -14,6 +14,10 @@ router.use(traderMiddleware);
 
 type TraderRequest = Request & { trader: string };
 
+interface TradeImportBody {
+  trades?: unknown;
+}
+
 /**
  * Computes holdingDays from createdAt to closeDate.
  * Clamps to a minimum of 1 to prevent division-by-zero in daily profit formula.
@@ -44,6 +48,33 @@ async function readTrades(trader: string): Promise<RawTrade[]> {
   } catch {
     return [];
   }
+}
+
+function buildImportedCreatedAt(closeDate: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(closeDate)) {
+    return `${closeDate}T12:00:00.000Z`;
+  }
+
+  const parsed = new Date(closeDate);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
+function buildRawTrade(body: Record<string, unknown>, createdAt: string, holdingDays: number): RawTrade {
+  return {
+    id: crypto.randomUUID(),
+    createdAt,
+    holdingDays,
+    token: typeof body['token'] === 'string' && body['token'].trim() !== '' ? String(body['token']) : String(body['position']),
+    type: String(body['type']),
+    position: String(body['position']),
+    tradePosition: typeof body['tradePosition'] === 'string' && body['tradePosition'].trim() !== '' ? String(body['tradePosition']) : 'long',
+    brokerCost: Number(body['brokerCost'] ?? 0),
+    leverage: Number(body['leverage']),
+    volume: Number(body['volume']),
+    buyPrice: Number(body['buyPrice']),
+    sellPrice: Number(body['sellPrice']),
+    closeDate: String(body['closeDate']),
+  };
 }
 
 /**
@@ -106,18 +137,7 @@ router.post('/', auditMiddleware, async (req: Request, res: Response) => {
   const createdAt = new Date().toISOString();
   const holdingDays = computeHoldingDays(createdAt, String(body['closeDate']));
 
-  const newRawTrade: RawTrade = {
-    id: crypto.randomUUID(),
-    createdAt,
-    holdingDays,
-    type: String(body['type']),
-    position: String(body['position']),
-    leverage: Number(body['leverage']),
-    volume: Number(body['volume']),
-    buyPrice: Number(body['buyPrice']),
-    sellPrice: Number(body['sellPrice']),
-    closeDate: String(body['closeDate']),
-  };
+  const newRawTrade = buildRawTrade(body, createdAt, holdingDays);
 
   // Persist to storage (raw fields only — no calculated fields)
   await ensureTraderDir(trader);
@@ -130,6 +150,46 @@ router.post('/', auditMiddleware, async (req: Request, res: Response) => {
   // Return enriched record with all 9 calculated fields
   const enriched = formulaService.applyAll(newRawTrade);
   res.status(201).json(enriched);
+});
+
+// --- POST /api/v1/trades/import ---
+router.post('/import', async (req: Request, res: Response) => {
+  const { trader } = req as TraderRequest;
+  const trades = (req.body as TradeImportBody | undefined)?.trades;
+
+  if (!Array.isArray(trades) || trades.length === 0) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Trades array is required', field: 'trades' },
+    });
+    return;
+  }
+
+  const imported: RawTrade[] = [];
+
+  for (const [index, row] of trades.entries()) {
+    const body = stripCalculatedFields((row ?? {}) as Record<string, unknown>);
+    const validation = validateCreateTradeDto(body);
+    if (!validation.valid) {
+      res.status(400).json({
+        error: {
+          ...validation.error,
+          message: `Row ${index + 2}: ${validation.error?.message ?? 'Invalid trade row'}`,
+          row: index + 2,
+        },
+      });
+      return;
+    }
+
+    const closeDate = String(body['closeDate']);
+    imported.push(buildRawTrade(body, buildImportedCreatedAt(closeDate), 1));
+  }
+
+  await ensureTraderDir(trader);
+  const existing = await readTrades(trader);
+  await storageService.write(`traders/${trader}/trades.json`, [...existing, ...imported]);
+
+  const enriched = imported.map((trade) => formulaService.applyAll(trade));
+  res.status(201).json({ imported: enriched.length, trades: enriched });
 });
 
 // --- PUT /api/v1/trades/:id ---
@@ -174,8 +234,11 @@ router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
 
   const updatedRaw: RawTrade = {
     ...previous,
+    token: typeof body['token'] === 'string' && body['token'].trim() !== '' ? String(body['token']) : String(body['position']),
     type: String(body['type']),
     position: String(body['position']),
+    tradePosition: typeof body['tradePosition'] === 'string' && body['tradePosition'].trim() !== '' ? String(body['tradePosition']) : (previous.tradePosition ?? 'long'),
+    brokerCost: body['brokerCost'] !== undefined ? Number(body['brokerCost']) : Number(previous.brokerCost ?? 0),
     leverage: Number(body['leverage']),
     volume: Number(body['volume']),
     buyPrice: Number(body['buyPrice']),

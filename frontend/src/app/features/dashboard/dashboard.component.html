@@ -1,5 +1,5 @@
 <main id="main-content" class="px-4 py-6 max-w-7xl mx-auto space-y-6">
-  <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+  <h1 class="text-2xl font-bold text-gray-900">{{ 'dashboard.title' | translate }}</h1>
 
   <!-- Error state -->
   @if (!loading() && error()) {
@@ -7,19 +7,19 @@
       class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
       role="alert"
     >
-      {{ error() }}
+      {{ error()! | translate }}
     </div>
   }
 
   <!-- Empty state -->
   @if (!loading() && !error() && isEmpty()) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-base mb-2">No trades yet — start tracking to see your dashboard</p>
+      <p class="text-gray-400 text-base mb-2">{{ 'dashboard.empty.description' | translate }}</p>
       <a
         routerLink="/trades"
         class="inline-block text-blue-600 hover:text-blue-700 text-sm font-medium"
       >
-        Go to Trades →
+        {{ 'dashboard.empty.goToTrades' | translate }}
       </a>
     </div>
   }
@@ -28,25 +28,25 @@
   @if (!isEmpty()) {
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <app-kpi-card
-        label="Total Trades"
+        [label]="'dashboard.kpis.totalTrades' | translate"
         [value]="totalTradesDisplay()"
         colorVariant="neutral"
         [loading]="loading()"
       />
       <app-kpi-card
-        label="Total Net Profit"
+        [label]="'dashboard.kpis.totalNetProfit' | translate"
         [value]="totalNetProfitDisplay()"
         [colorVariant]="totalNetProfitColor()"
         [loading]="loading()"
       />
       <app-kpi-card
-        label="Best Single Trade"
+        [label]="'dashboard.kpis.bestSingleTrade' | translate"
         [value]="bestSingleTradeDisplay()"
         colorVariant="positive"
         [loading]="loading()"
       />
       <app-kpi-card
-        label="Win Rate"
+        [label]="'dashboard.kpis.winRate' | translate"
         [value]="winRateDisplay()"
         [colorVariant]="winRateColor()"
         [loading]="loading()"

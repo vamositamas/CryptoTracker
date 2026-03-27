@@ -20,7 +20,7 @@ export class TradeService {
       const trades = await this.api.getTrades();
       this.trades.set(trades);
     } catch {
-      this.error.set('Failed to load trades. Please try again.');
+      this.error.set('trades.errors.loadFailed');
     } finally {
       this.loading.set(false);
     }
@@ -71,7 +71,7 @@ export class TradeService {
     const snapshot = this.trades();
     const target = snapshot.find((t) => t.id === id);
     if (!target) {
-      this.error.set('Trade not found. Please refresh and try again.');
+      this.error.set('trades.errors.notFound');
       return;
     }
 
@@ -93,7 +93,7 @@ export class TradeService {
       this.trades.update((ts) => ts.map((t) => (t.id === id ? saved : t)));
     } catch (err) {
       this.trades.set(snapshot);
-      const message = err instanceof Error ? err.message : 'Failed to update trade. Please try again.';
+      const message = err instanceof Error ? err.message : 'trades.errors.updateFailed';
       this.error.set(message);
       throw err;
     }
@@ -103,7 +103,7 @@ export class TradeService {
     const snapshot = this.trades();
     const target = snapshot.find((t) => t.id === id);
     if (!target) {
-      this.error.set('Trade not found. Please refresh and try again.');
+      this.error.set('trades.errors.notFound');
       return;
     }
 
@@ -115,6 +115,23 @@ export class TradeService {
     } catch (err) {
       this.trades.set(snapshot);
       const message = err instanceof Error ? err.message : 'Failed to delete trade. Please try again.';
+      this.error.set(message);
+      throw err;
+    }
+  }
+
+  async importTrades(dtos: CreateTradeDto[]): Promise<number> {
+    this.error.set(null);
+
+    try {
+      const response = await this.api.importTrades(dtos);
+      this.trades.update((trades) => [
+        ...response.trades.map((trade) => ({ ...trade, flashNew: true })),
+        ...trades,
+      ]);
+      return response.imported;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'trades.import.errors.failed';
       this.error.set(message);
       throw err;
     }

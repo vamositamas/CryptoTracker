@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardApiService } from './dashboard-api.service';
 import { KpiData, MonthlyData } from './dashboard.model';
 import { KpiCardComponent } from './kpi-card/kpi-card.component';
@@ -8,7 +9,7 @@ import { MonthlyTableComponent } from './monthly-table/monthly-table.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, KpiCardComponent, MonthlyTableComponent],
+  imports: [RouterLink, TranslatePipe, KpiCardComponent, MonthlyTableComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -44,7 +45,7 @@ export class DashboardComponent implements OnInit {
 
   readonly bestSingleTradeDisplay = computed(() => {
     const k = this.kpis();
-    if (!k || k.bestSingleTrade === null) return '—';
+    if (!k || k.bestSingleTrade === null) return '-';
     return k.bestSingleTrade.toFixed(2);
   });
 
@@ -70,7 +71,7 @@ export class DashboardComponent implements OnInit {
       this.kpis.set(kpis);
       this.monthly.set(monthly);
     } catch {
-      this.error.set('Failed to load dashboard data. Please try again.');
+      this.error.set('dashboard.errors.loadFailed');
     } finally {
       this.loading.set(false);
     }

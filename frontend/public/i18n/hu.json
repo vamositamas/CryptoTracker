@@ -1,0 +1,341 @@
+{
+  "common": {
+    "save": "Mentés",
+    "cancel": "Mégse",
+    "delete": "Törlés",
+    "confirm": "Biztos benne?",
+    "dash": "-"
+  },
+  "shell": {
+    "appName": "CryptoTracker",
+    "skipToContent": "Ugrás a fő tartalomra",
+    "mainNavigation": "Fő navigáció",
+    "language": "Nyelv",
+    "lang": {
+      "en": "EN",
+      "hu": "HU"
+    },
+    "switchTrader": "Kereskedő váltása",
+    "nav": {
+      "dashboard": "Irányítópult",
+      "trades": "Kötések",
+      "audit": "Auditnapló",
+      "masterData": "Törzsadatok",
+      "formulas": "Képletek"
+    }
+  },
+  "dashboard": {
+    "title": "Irányítópult",
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni az irányítópult adatait. Próbálja újra."
+    },
+    "empty": {
+      "description": "Még nincs kötés - kezdje el a rögzítést az irányítópult megjelenítéséhez",
+      "goToTrades": "Ugrás a Kötésekhez ->"
+    },
+    "kpis": {
+      "totalTrades": "Összes kötés",
+      "totalNetProfit": "Összes nettó profit",
+      "bestSingleTrade": "Legjobb egyedi kötés",
+      "winRate": "Találati arány"
+    },
+    "monthly": {
+      "title": "Havi teljesítmény",
+      "empty": "Még nincs havi adat",
+      "columns": {
+        "month": "Hónap",
+        "trades": "Kötések",
+        "netProfit": "Nettó profit",
+        "winRate": "Találati arány"
+      }
+    }
+  },
+  "trades": {
+    "title": "Kötések",
+    "newTrade": "+ Új kötés",
+    "newTradeWithShortcut": "Új kötés (N)",
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni a kötéseket. Próbálja újra.",
+      "updateFailed": "Nem sikerült frissíteni a kötést. Próbálja újra.",
+      "notFound": "A kötés nem található. Frissítsen és próbálja újra."
+    },
+    "toasts": {
+      "deleteFailed": "Nem sikerült törölni a kötést. Próbálja újra."
+    },
+    "import": {
+      "title": "Excel import",
+      "description": "Importálja a korábbi kötéseit az Excel fájl első munkalapjáról, ha az megfelel a régi export oszlopszerkezetének.",
+      "success": "{{fileName}} fájlból {{count}} kötés importálva.",
+      "errors": {
+        "failed": "Nem sikerült importálni a kötéseket. Próbálja újra."
+      },
+      "actions": {
+        "import": "Excel import",
+        "importing": "Importálás..."
+      }
+    },
+    "filters": {
+      "title": "Szűrők",
+      "token": "Token",
+      "type": "Típus",
+      "from": "Ettől",
+      "to": "Eddig",
+      "tokenPlaceholder": "pl. BTC",
+      "typePlaceholder": "pl. long",
+      "clearAll": "Összes törlése"
+    },
+    "form": {
+      "title": "Új kötés",
+      "fields": {
+        "position": "Token",
+        "tradePosition": "Pozíció",
+        "type": "Kötés típusa",
+        "brokerCost": "Bróker költség (USDT)",
+        "leverage": "Tőkeáttétel",
+        "volume": "Mennyiség",
+        "buyPrice": "Vételi ár (USDT)",
+        "sellPrice": "Eladási ár (USDT)",
+        "closeDate": "Zárás dátuma"
+      },
+      "placeholders": {
+        "position": "Token kiválasztása...",
+        "tradePosition": "Pozíció kiválasztása...",
+        "type": "Típus kiválasztása..."
+      },
+      "empty": {
+        "tokens": "Nincs konfigurált token - adja hozzá a Törzsadatoknál",
+        "positions": "Nincs konfigurált pozíció - adja hozzá a Törzsadatoknál",
+        "types": "Nincs konfigurált kötéstípus - adja hozzá a Törzsadatoknál"
+      },
+      "warnings": {
+        "leverageHigh": "A 100x feletti tőkeáttétel szokatlanul magas.",
+        "buyPriceLow": "A vételi ár szokatlanul alacsony - ellenőrizze."
+      },
+      "actions": {
+        "save": "Kötés mentése",
+        "saving": "Mentés...",
+        "cancel": "Mégse",
+        "hotkey": "Ctrl+Enter a mentéshez"
+      },
+      "announcements": {
+        "saved": "Kötés mentve"
+      },
+      "errors": {
+        "invalid": "Érvénytelen érték",
+        "saveFailed": "Nem sikerült menteni a kötést.",
+        "required": {
+          "token": "A token megadása kötelező",
+          "position": "A token megadása kötelező",
+          "tradePosition": "A pozíció megadása kötelező",
+          "type": "A kötéstípus megadása kötelező",
+          "brokerCost": "A bróker költség megadása kötelező",
+          "leverage": "A tőkeáttétel megadása kötelező",
+          "volume": "A mennyiség megadása kötelező",
+          "buyPrice": "A vételi ár megadása kötelező",
+          "sellPrice": "Az eladási ár megadása kötelező",
+          "closeDate": "A zárás dátuma kötelező"
+        },
+        "min": {
+          "brokerCost": "A bróker költség legalább 0 lehet",
+          "leverage": "A tőkeáttételnek 0-nál nagyobbnak kell lennie",
+          "volume": "A mennyiségnek 0-nál nagyobbnak kell lennie",
+          "buyPrice": "A vételi árnak 0-nál nagyobbnak kell lennie",
+          "sellPrice": "Az eladási árnak 0-nál nagyobbnak kell lennie"
+        }
+      }
+    },
+    "table": {
+      "columns": {
+        "closeDate": "Zárás dátuma",
+        "position": "Token",
+        "tradePosition": "Pozíció",
+        "type": "Típus",
+        "brokerCost": "Költség",
+        "leverage": "Tőkeáttétel",
+        "volume": "Mennyiség",
+        "buyPrice": "Vételi ár",
+        "sellPrice": "Eladási ár",
+        "netProfit": "Nettó profit",
+        "profitPercent": "Profit %",
+        "result": "Eredmény"
+      },
+      "empty": {
+        "withFilters": "Nincs a szűrőknek megfelelő kötés.",
+        "withoutFilters": "Még nincs rögzített kötés."
+      },
+      "actions": {
+        "clearFilters": "Szűrők törlése",
+        "addFirst": "Első kötés hozzáadása ->",
+        "deleteTrade": "Kötés törlése",
+        "deleteTradeFor": "{{position}} kötés törlése (zárás: {{closeDate}})",
+        "editTradeFor": "{{position}} kötés szerkesztése (zárás: {{closeDate}})"
+      },
+      "result": {
+        "win": "Nyerő",
+        "loss": "Vesztes"
+      },
+      "edit": {
+        "errors": {
+          "required": {
+            "token": "A token megadása kötelező",
+            "type": "A kötéstípus megadása kötelező",
+            "position": "A token megadása kötelező",
+            "tradePosition": "A pozíció megadása kötelező",
+            "closeDate": "A zárás dátuma kötelező"
+          },
+          "min": {
+            "brokerCost": "A bróker költség legalább 0 lehet",
+            "leverage": "A tőkeáttételnek 0-nál nagyobbnak kell lennie",
+            "volume": "A mennyiségnek 0-nál nagyobbnak kell lennie",
+            "buyPrice": "A vételi árnak 0-nál nagyobbnak kell lennie",
+            "sellPrice": "Az eladási árnak 0-nál nagyobbnak kell lennie"
+          }
+        }
+      }
+    }
+  },
+  "routeTitles": {
+    "selectTrader": "Profil kiválasztása",
+    "dashboard": "Irányítópult",
+    "trades": "Kötések",
+    "audit": "Auditnapló",
+    "masterData": "Törzsadatok",
+    "formulas": "Képletek"
+  },
+  "formulas": {
+    "title": "Számítási képletek",
+    "description": "Szerkessze a kötésmutatókhoz használt képleteket, és adjon hozzá egyedi számított mezőket. A kötelező képletek zárolva maradnak, hogy az alkalmazás többi része működőképes maradjon.",
+    "guide": {
+      "title": "Képletszabályok",
+      "description": "A kifejezések expr-eval szintaxist használnak. A változók hivatkozhatnak a kötés bemeneti adataira és a jelenlegi sor felett definiált képletekre.",
+      "variables": "Gyakori változók"
+    },
+    "actions": {
+      "reload": "Újratöltés",
+      "save": "Képletek mentése",
+      "saving": "Mentés...",
+      "add": "Képlet hozzáadása",
+      "remove": "Eltávolítás",
+      "confirmRemove": "Törlés"
+    },
+    "status": {
+      "unsaved": "Nem mentett képletmódosítások vannak.",
+      "saved": "Minden képletmódosítás mentve van."
+    },
+    "table": {
+      "columns": {
+        "field": "Mező",
+        "expression": "Kifejezés",
+        "variables": "Változók",
+        "actions": "Műveletek"
+      },
+      "requiredBadge": "Kötelező",
+      "variablesPending": "Mentés után újraszámolva"
+    },
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni a képleteket. Próbálja újra.",
+      "saveFailed": "Nem sikerült menteni a képleteket. Próbálja újra.",
+      "fieldRequired": "A mező neve kötelező",
+      "expressionRequired": "A kifejezés kötelező",
+      "duplicateField": "A mezőneveknek egyedinek kell lenniük",
+      "invalidField": "A mezőnév betűvel kell kezdődjön, és csak betűket, számokat vagy aláhúzást tartalmazhat"
+    },
+    "preview": {
+      "loading": "Képletek ellenőrzése...",
+      "valid": "Az előnézet érvényes. A változólista naprakész.",
+      "failed": "Az előnézet hibás. Mentés előtt javítsa a képletet.",
+      "fixValidation": "Az előnézethez javítsa a kiemelt képlethibákat."
+    }
+  },
+  "masterData": {
+    "title": "Törzsadatok",
+    "tabAria": "Törzsadat fülek",
+    "tabs": {
+      "tokens": "Tokenek",
+      "tradeTypes": "Kötéstípusok",
+      "positions": "Pozíciók"
+    },
+    "fields": {
+      "token": "Token",
+      "tradeType": "Kötéstípus",
+      "position": "Pozíció"
+    },
+    "singular": {
+      "tokens": "token",
+      "trade-types": "kötéstípus",
+      "positions": "pozíció"
+    },
+    "description": {
+      "tokens": "A csapat közös token értékeinek kezelése.",
+      "tradeTypes": "A csapat közös kötéstípus értékeinek kezelése.",
+      "positions": "A csapat közös pozíció értékeinek kezelése."
+    },
+    "empty": {
+      "tokens": "Nincs konfigurált token",
+      "tradeTypes": "Nincs konfigurált kötéstípus",
+      "positions": "Nincs konfigurált pozíció"
+    },
+    "actions": {
+      "addToken": "Token hozzáadása",
+      "addTradeType": "Kötéstípus hozzáadása",
+      "addPosition": "Pozíció hozzáadása"
+    },
+    "table": {
+      "description": "A közös {{singular}} lista kezelése.",
+      "actions": "Műveletek",
+      "editItem": "{{value}} szerkesztése",
+      "deleteItem": "{{value}} törlése"
+    },
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni a törzsadatokat. Próbálja újra.",
+      "saveFailed": "Nem sikerült menteni a törzsadatokat. Próbálja újra.",
+      "deleteFailed": "Nem sikerült törölni a törzsadatot. Próbálja újra.",
+      "fieldRequired": "Az érték megadása kötelező"
+    }
+  },
+  "audit": {
+    "title": "Auditnapló",
+    "loading": "Auditnapló betöltése...",
+    "loadingAria": "Auditnapló betöltése",
+    "actions": {
+      "create": "LÉTREHOZÁS",
+      "update": "MÓDOSÍTÁS",
+      "delete": "TÖRLÉS"
+    },
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni az auditnaplót. Próbálja újra."
+    },
+    "filters": {
+      "action": "Művelet",
+      "allActions": "Minden művelet",
+      "fromDate": "Dátumtól",
+      "toDate": "Dátumig",
+      "clear": "Szűrők törlése"
+    },
+    "empty": {
+      "withFilters": "Nincs a jelenlegi szűrőknek megfelelő audit bejegyzés.",
+      "withoutFilters": "Még nincs audit bejegyzés."
+    },
+    "table": {
+      "aria": "Auditnapló",
+      "columns": {
+        "timestamp": "Időbélyeg",
+        "trader": "Kereskedő",
+        "action": "Művelet",
+        "tradeId": "Kötés azonosító",
+        "field": "Mező",
+        "oldValue": "Régi érték",
+        "newValue": "Új érték"
+      },
+      "rowCount": "{{count}} bejegyzés"
+    }
+  },
+  "userSelector": {
+    "title": "Profil kiválasztása",
+    "loading": "Profilok betöltése...",
+    "empty": "Nem található profil. Forduljon a rendszergazdához.",
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni a kereskedő profilokat. Frissítse az oldalt."
+    }
+  }
+}

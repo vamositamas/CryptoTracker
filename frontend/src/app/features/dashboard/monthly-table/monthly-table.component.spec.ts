@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MonthlyTableComponent } from './monthly-table.component';
 import { MonthlyData } from '../dashboard.model';
+import { provideTranslateTesting } from '../../../../testing/translate-test.providers';
 
 const MOCK_DATA: MonthlyData[] = [
   { year: 2024, month: 1, tradeCount: 5, netProfit: 2000, winRate: 0.6 },
@@ -12,6 +13,7 @@ describe('MonthlyTableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MonthlyTableComponent],
+      providers: [...provideTranslateTesting()],
     }).compileComponents();
   });
 

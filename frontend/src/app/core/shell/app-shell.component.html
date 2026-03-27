@@ -2,16 +2,16 @@
 <a
   href="#main-content"
   class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:top-4 focus:left-4 focus:rounded-md"
->Skip to main content</a>
+>{{ 'shell.skipToContent' | translate }}</a>
 
 <!-- Sidebar -->
 <nav
   class="fixed left-0 top-0 h-screen w-60 bg-gray-900 flex flex-col z-40"
-  aria-label="Main navigation"
+  [attr.aria-label]="'shell.mainNavigation' | translate"
 >
   <!-- Logo / App name -->
   <div class="px-6 py-5 border-b border-gray-800">
-    <span class="text-lg font-semibold text-white">CryptoTracker</span>
+    <span class="text-lg font-semibold text-white">{{ 'shell.appName' | translate }}</span>
   </div>
 
   <!-- Navigation links -->
@@ -21,34 +21,46 @@
         routerLink="/dashboard"
         routerLinkActive="bg-blue-900/40 !text-blue-300"
         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        aria-label="Dashboard"
-      >Dashboard</a>
+        [attr.aria-label]="'shell.nav.dashboard' | translate"
+      >{{ 'shell.nav.dashboard' | translate }}</a>
     </li>
     <li>
       <a
         routerLink="/trades"
         routerLinkActive="bg-blue-900/40 !text-blue-300"
         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        aria-label="Trades"
-      >Trades</a>
+        [attr.aria-label]="'shell.nav.trades' | translate"
+      >{{ 'shell.nav.trades' | translate }}</a>
     </li>
     <li>
       <a
         routerLink="/audit"
         routerLinkActive="bg-blue-900/40 !text-blue-300"
         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        aria-label="Audit Trail"
-      >Audit Trail</a>
+        [attr.aria-label]="'shell.nav.audit' | translate"
+      >{{ 'shell.nav.audit' | translate }}</a>
     </li>
     <li>
       <a
         routerLink="/master-data"
         routerLinkActive="bg-blue-900/40 !text-blue-300"
         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        aria-label="Master Data"
-      >Master Data</a>
+        [attr.aria-label]="'shell.nav.masterData' | translate"
+      >{{ 'shell.nav.masterData' | translate }}</a>
+    </li>
+    <li>
+      <a
+        routerLink="/formulas"
+        routerLinkActive="bg-blue-900/40 !text-blue-300"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        [attr.aria-label]="'shell.nav.formulas' | translate"
+      >{{ 'shell.nav.formulas' | translate }}</a>
     </li>
   </ul>
+
+  <div class="px-4 pb-4">
+    <app-language-toggle />
+  </div>
 
   <!-- Sidebar footer — active trader + switch -->
   <div class="px-4 py-4 border-t border-gray-800 flex flex-col gap-1">
@@ -57,7 +69,7 @@
         type="button"
         (click)="switchTrader()"
         class="text-sm text-gray-300 hover:text-white text-left truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        title="Switch trader"
+        [attr.title]="'shell.switchTrader' | translate"
       >{{ userService.activeTrader() }}</button>
     }
     <span class="text-xs text-gray-500">v0.1.0</span>
@@ -65,7 +77,7 @@
 </nav>
 
 <!-- Main content area -->
-<div class="ml-60 min-h-screen bg-gray-50">
+<div id="main-content" class="ml-60 min-h-screen bg-gray-50">
   <div class="max-w-[1400px] mx-auto">
     <router-outlet />
   </div>

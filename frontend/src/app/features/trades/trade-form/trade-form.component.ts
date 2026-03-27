@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  HostListener,
   inject,
   signal,
   computed,
@@ -10,6 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TradeService } from '../trade.service';
 import { MasterDataApiService } from '../../master-data/master-data-api.service';
 import { CreateTradeDto } from '../../../core/models/trade.model';
@@ -18,7 +20,7 @@ import { TradeApiError } from '../trade-api.service';
 @Component({
   selector: 'app-trade-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './trade-form.component.html',
 })
 export class TradeFormComponent implements OnInit {
@@ -32,13 +34,17 @@ export class TradeFormComponent implements OnInit {
   @ViewChild('firstField') firstFieldRef!: ElementRef<HTMLSelectElement>;
 
   readonly tokens = signal<string[]>([]);
+  readonly positions = signal<string[]>([]);
   readonly tradeTypes = signal<string[]>([]);
   readonly submitting = signal<boolean>(false);
   readonly submitError = signal<string | null>(null);
+  readonly liveAnnouncementKey = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    position: ['', Validators.required],
+    token: ['', Validators.required],
+    tradePosition: ['', Validators.required],
     type: ['', Validators.required],
+    brokerCost: [0, [Validators.required, Validators.min(0)]],
     leverage: [1, [Validators.required, Validators.min(0.001)]],
     volume: [null as number | null, [Validators.required, Validators.min(0.001)]],
     buyPrice: [null as number | null, [Validators.required, Validators.min(0.001)]],
@@ -58,11 +64,13 @@ export class TradeFormComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    const [tokens, tradeTypes] = await Promise.all([
+    const [tokens, positions, tradeTypes] = await Promise.all([
       this.masterDataApi.getTokens(),
+      this.masterDataApi.getPositions(),
       this.masterDataApi.getTradeTypes(),
     ]);
     this.tokens.set(tokens);
+    this.positions.set(positions);
     this.tradeTypes.set(tradeTypes);
 
     // Focus the first field after data is loaded
@@ -81,32 +89,23 @@ export class TradeFormComponent implements OnInit {
   getError(name: string): string | null {
     const ctrl = this.form.get(name);
     if (!ctrl || !ctrl.errors || !ctrl.touched) return null;
-    if (ctrl.errors['required']) return `${this.fieldLabel(name)} is required`;
-    if (ctrl.errors['min']) return `${this.fieldLabel(name)} must be greater than 0`;
-    return 'Invalid value';
-  }
-
-  private fieldLabel(name: string): string {
-    const labels: Record<string, string> = {
-      position: 'Token',
-      type: 'Trade type',
-      leverage: 'Leverage',
-      volume: 'Volume',
-      buyPrice: 'Buy price',
-      sellPrice: 'Sell price',
-      closeDate: 'Close date',
-    };
-    return labels[name] ?? name;
+    if (ctrl.errors['required']) return `trades.form.errors.required.${name}`;
+    if (ctrl.errors['min']) return `trades.form.errors.min.${name}`;
+    return 'trades.form.errors.invalid';
   }
 
   onSubmit(): void {
+    this.liveAnnouncementKey.set(null);
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
     const v = this.form.value;
     const dto: CreateTradeDto = {
+      token: v.token!,
       type: v.type!,
-      position: v.position!,
+      position: v.token!,
+      tradePosition: v.tradePosition!,
+      brokerCost: Number(v.brokerCost ?? 0),
       leverage: Number(v.leverage),
       volume: Number(v.volume),
       buyPrice: Number(v.buyPrice),
@@ -120,8 +119,9 @@ export class TradeFormComponent implements OnInit {
     this.tradeService
       .createTrade(dto)
       .then(() => {
-        this.form.reset({ leverage: 1 });
+        this.form.reset({ leverage: 1, brokerCost: 0 });
         this.submitting.set(false);
+        this.liveAnnouncementKey.set('trades.form.announcements.saved');
         this.saved.emit();
         // Refocus first field for next entry
         setTimeout(() => this.firstFieldRef?.nativeElement?.focus(), 0);
@@ -129,17 +129,25 @@ export class TradeFormComponent implements OnInit {
       .catch((err: unknown) => {
         this.submitting.set(false);
         if (err instanceof TradeApiError && err.apiError.field) {
-          const ctrl = this.form.get(err.apiError.field);
+          const fieldName = err.apiError.field === 'position' ? 'token' : err.apiError.field;
+          const ctrl = this.form.get(fieldName);
           ctrl?.setErrors({ serverError: err.apiError.message });
           ctrl?.markAsTouched();
         } else {
-          this.submitError.set(err instanceof Error ? err.message : 'Failed to save trade.');
+          this.submitError.set(err instanceof Error ? err.message : 'trades.form.errors.saveFailed');
         }
       });
   }
 
   onCancel(): void {
-    this.form.reset({ leverage: 1 });
+    this.liveAnnouncementKey.set(null);
+    this.form.reset({ leverage: 1, brokerCost: 0 });
     this.cancelled.emit();
+  }
+
+  @HostListener('window:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
+    event.preventDefault();
+    this.onCancel();
   }
 }

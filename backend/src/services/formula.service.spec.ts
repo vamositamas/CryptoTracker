@@ -10,10 +10,10 @@ const DEFAULT_FORMULAS = [
   { field: 'investmentAll',      expression: 'volume * buyPrice',                                                   variables: ['volume', 'buyPrice'] },
   { field: 'sellValue',          expression: 'volume * sellPrice',                                                  variables: ['volume', 'sellPrice'] },
   { field: 'cost',               expression: 'volume * buyPrice / leverage',                                        variables: ['volume', 'buyPrice', 'leverage'] },
-  { field: 'nettoProfit',        expression: '(sellPrice - buyPrice) * volume / leverage',                         variables: ['sellPrice', 'buyPrice', 'volume', 'leverage'] },
-  { field: 'profitPercent',      expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100',                 variables: ['sellPrice', 'buyPrice', 'leverage'] },
-  { field: 'profitRealPercent',  expression: '(sellPrice - buyPrice) / buyPrice * 100',                            variables: ['sellPrice', 'buyPrice'] },
-  { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays',  variables: ['sellPrice', 'buyPrice', 'leverage', 'holdingDays'] },
+  { field: 'nettoProfit',        expression: '(sellPrice - buyPrice) * volume * positionMultiplier - brokerCost',                       variables: ['sellPrice', 'buyPrice', 'volume', 'positionMultiplier', 'brokerCost'] },
+  { field: 'profitPercent',      expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 * positionMultiplier',                 variables: ['sellPrice', 'buyPrice', 'leverage', 'positionMultiplier'] },
+  { field: 'profitRealPercent',  expression: '(sellPrice - buyPrice) / buyPrice * 100 * positionMultiplier',                            variables: ['sellPrice', 'buyPrice', 'positionMultiplier'] },
+  { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays * positionMultiplier',  variables: ['sellPrice', 'buyPrice', 'leverage', 'holdingDays', 'positionMultiplier'] },
   { field: 'result',             expression: 'nettoProfit',                                                         variables: ['nettoProfit'] },
 ];
 
@@ -58,12 +58,78 @@ describe('FormulaService.validate()', () => {
     await badSvc.load();
     expect(() => badSvc.validate()).toThrow('[FATAL] Formula config invalid: nettoProfit');
   });
+
+  it('throws when a formula references a variable that is not available yet', async () => {
+    const badFormulas = [
+      { field: 'riskScore', expression: 'nettoProfit / investment', variables: ['investment', 'nettoProfit'] },
+      ...DEFAULT_FORMULAS,
+    ];
+    const badPath = path.join(tmpDir, 'bad-order-formulas.json');
+    await fs.writeFile(badPath, JSON.stringify(badFormulas), 'utf-8');
+    const badSvc = new FormulaService(badPath);
+    await badSvc.load();
+
+    expect(() => badSvc.validate()).toThrow('[FATAL] Formula config invalid: riskScore');
+  });
 });
 
 describe('FormulaService.load()', () => {
   it('throws [FATAL] when the formulas file does not exist', async () => {
     const missingSvc = new FormulaService(path.join(tmpDir, 'nonexistent.json'));
     await expect(missingSvc.load()).rejects.toThrow('[FATAL]');
+  });
+});
+
+describe('FormulaService.replaceEditableDefinitions()', () => {
+  it('persists normalized formulas and keeps the derived result definition', async () => {
+    const saved = await svc.replaceEditableDefinitions([
+      { field: 'investment', expression: 'volume * buyPrice / leverage' },
+      { field: 'investmentAll', expression: 'volume * buyPrice' },
+      { field: 'sellValue', expression: 'volume * sellPrice' },
+      { field: 'cost', expression: 'volume * buyPrice / leverage' },
+      { field: 'nettoProfit', expression: '(sellPrice - buyPrice) * volume * positionMultiplier - brokerCost' },
+      { field: 'profitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 * positionMultiplier' },
+      { field: 'profitRealPercent', expression: '(sellPrice - buyPrice) / buyPrice * 100 * positionMultiplier' },
+      { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays * positionMultiplier' },
+      { field: 'riskScore', expression: 'nettoProfit / investment' },
+    ]);
+
+    expect(saved.at(-1)).toEqual({
+      field: 'riskScore',
+      expression: 'nettoProfit / investment',
+      variables: ['investment', 'nettoProfit'],
+    });
+
+    const persisted = JSON.parse(
+      await fs.readFile(path.join(tmpDir, 'formulas.json'), 'utf-8'),
+    ) as Array<{ field: string; expression: string; variables: string[] }>;
+
+    expect(persisted.at(-2)).toEqual({
+      field: 'riskScore',
+      expression: 'nettoProfit / investment',
+      variables: ['investment', 'nettoProfit'],
+    });
+    expect(persisted.at(-1)).toEqual({
+      field: 'result',
+      expression: 'nettoProfit',
+      variables: ['nettoProfit'],
+    });
+  });
+
+  it('rejects custom formulas that reuse reserved input field names', async () => {
+    await expect(
+      svc.replaceEditableDefinitions([
+        { field: 'investment', expression: 'volume * buyPrice / leverage' },
+        { field: 'investmentAll', expression: 'volume * buyPrice' },
+        { field: 'sellValue', expression: 'volume * sellPrice' },
+        { field: 'cost', expression: 'volume * buyPrice / leverage' },
+        { field: 'nettoProfit', expression: '(sellPrice - buyPrice) * volume * positionMultiplier - brokerCost' },
+        { field: 'profitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 * positionMultiplier' },
+        { field: 'profitRealPercent', expression: '(sellPrice - buyPrice) / buyPrice * 100 * positionMultiplier' },
+        { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays * positionMultiplier' },
+        { field: 'volume', expression: 'buyPrice * 2' },
+      ]),
+    ).rejects.toThrow('field name is reserved');
   });
 });
 
@@ -90,6 +156,48 @@ describe('FormulaService.applyAll() — Excel parity fixture', () => {
       expect(result.result, `${fixture.scenario}: result`).toBe(fixture.expected['result']);
     });
   }
+
+  it('inverts profit calculations for short positions', () => {
+    svc.validate();
+
+    const result = svc.applyAll({
+      type: 'spot',
+      position: 'BTC',
+      tradePosition: 'short',
+      leverage: 2,
+      volume: 1,
+      buyPrice: 100,
+      sellPrice: 110,
+      closeDate: '2026-03-26',
+      holdingDays: 1,
+    });
+
+    expect(result.nettoProfit).toBeCloseTo(-10, 2);
+    expect(result.profitPercent).toBeCloseTo(-20, 2);
+    expect(result.profitRealPercent).toBeCloseTo(-10, 2);
+    expect(result.dailyProfitPercent).toBeCloseTo(-20, 2);
+    expect(result.result).toBe('Loss');
+  });
+
+  it('subtracts broker cost from netto profit', () => {
+    svc.validate();
+
+    const result = svc.applyAll({
+      type: 'spot',
+      position: 'BTC',
+      tradePosition: 'long',
+      leverage: 1,
+      volume: 1,
+      buyPrice: 100,
+      sellPrice: 110,
+      brokerCost: 3,
+      closeDate: '2026-03-26',
+      holdingDays: 1,
+    });
+
+    expect(result.nettoProfit).toBeCloseTo(7, 2);
+    expect(result.result).toBe('Win');
+  });
 });
 
 describe('stripCalculatedFields()', () => {

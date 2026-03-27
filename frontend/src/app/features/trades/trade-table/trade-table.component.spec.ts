@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { TradeTableComponent } from './trade-table.component';
 import { TradeWithMeta } from '../trade.service';
+import { provideTranslateTesting } from '../../../../testing/translate-test.providers';
+import { MasterDataApiService } from '../../master-data/master-data-api.service';
 
 const WIN_TRADE: TradeWithMeta = {
   id: 'trade-1',
@@ -51,8 +53,18 @@ const ALT_TRADE: TradeWithMeta = {
 
 describe('TradeTableComponent', () => {
   beforeEach(async () => {
+    const masterDataApiMock = {
+      getTokens: vi.fn().mockResolvedValue(['BTC', 'ETH', 'DOT']),
+      getPositions: vi.fn().mockResolvedValue(['long', 'short']),
+      getTradeTypes: vi.fn().mockResolvedValue(['spot', 'futures']),
+    };
+
     await TestBed.configureTestingModule({
       imports: [TradeTableComponent],
+      providers: [
+        ...provideTranslateTesting(),
+        { provide: MasterDataApiService, useValue: masterDataApiMock },
+      ],
     }).compileComponents();
   });
 
@@ -142,6 +154,17 @@ describe('TradeTableComponent', () => {
 
     const badge = fixture.nativeElement.querySelector('[class*="bg-red-100"]') as HTMLElement;
     expect(badge?.textContent?.trim()).toBe('Loss');
+  });
+
+  it('sets contextual aria-label on icon-only delete button', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const deleteBtn = fixture.nativeElement.querySelector('button[aria-label^="Delete trade"]') as HTMLButtonElement;
+    expect(deleteBtn.getAttribute('aria-label')).toContain('Delete trade BTC closed on 2024-06-01');
   });
 
   it('applies bg-emerald-50 class to rows with flashNew: true', async () => {
@@ -313,6 +336,20 @@ describe('TradeTableComponent', () => {
     expect(saveBtn).toBeTruthy();
   });
 
+  it('enters edit mode when a row receives Enter key', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = fixture.nativeElement.querySelector('tbody tr') as HTMLTableRowElement;
+    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.editingId()).toBe('trade-1');
+  });
+
   it('cancels edit mode on Escape key', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
@@ -323,8 +360,45 @@ describe('TradeTableComponent', () => {
     fixture.componentInstance.startEdit(WIN_TRADE);
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector('input[type="text"]') as HTMLInputElement;
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    select.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.editingId()).toBeNull();
+  });
+
+  it('renders dropdown lists for token, position, and type in edit mode', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.componentInstance.ngOnInit();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.detectChanges();
+
+    const selects = Array.from(
+      fixture.nativeElement.querySelectorAll('tr select') as NodeListOf<HTMLSelectElement>,
+    );
+
+    expect(selects.length).toBeGreaterThanOrEqual(3);
+    expect(Array.from(selects[0].options).map((option) => option.value)).toEqual(['BTC', 'ETH', 'DOT']);
+    expect(Array.from(selects[1].options).map((option) => option.value)).toEqual(['long', 'short']);
+    expect(Array.from(selects[2].options).map((option) => option.value)).toEqual(['spot', 'futures']);
+  });
+
+  it('cancels edit mode on global Escape key', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    expect(fixture.componentInstance.editingId()).toBe('trade-1');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
 
     expect(fixture.componentInstance.editingId()).toBeNull();
@@ -366,7 +440,7 @@ describe('TradeTableComponent', () => {
     fixture.componentInstance.onSaveEdit();
 
     expect(saveSpy).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.fieldErrors().sellPrice).toContain('greater than 0');
+    expect(fixture.componentInstance.fieldErrors().sellPrice).toBe('trades.table.edit.errors.min.sellPrice');
   });
 
   it('shows inline delete confirmation when delete icon is clicked', async () => {
@@ -378,7 +452,7 @@ describe('TradeTableComponent', () => {
 
     const deleteBtn = Array.from(
       fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
-    ).find((btn) => btn.getAttribute('aria-label') === 'Delete trade') as HTMLButtonElement;
+    ).find((btn) => (btn.getAttribute('aria-label') ?? '').startsWith('Delete trade')) as HTMLButtonElement;
 
     deleteBtn.click();
     fixture.detectChanges();
@@ -409,6 +483,22 @@ describe('TradeTableComponent', () => {
     expect(fixture.componentInstance.deleteConfirmId()).toBeNull();
   });
 
+  it('cancels delete confirmation on global Escape key', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.openDeleteConfirm('trade-1');
+    expect(fixture.componentInstance.deleteConfirmId()).toBe('trade-1');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.deleteConfirmId()).toBeNull();
+  });
+
   it('emits deleteTrade when delete confirmation is accepted', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
@@ -430,5 +520,129 @@ describe('TradeTableComponent', () => {
 
     expect(deleteSpy).toHaveBeenCalledWith('trade-1');
     expect(fixture.componentInstance.deleteConfirmId()).toBeNull();
+  });
+
+  it('generates sort button label when not sorted', () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.detectChanges();
+
+    const label = fixture.componentInstance.getSortButtonLabel('closeDate', 'Close Date');
+
+    expect(label).toBe('Sort by Close Date');
+  });
+
+  it('generates sort button label when sorted ascending', () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.sortCol.set('closeDate');
+    fixture.componentInstance.sortDir.set('asc');
+
+    const label = fixture.componentInstance.getSortButtonLabel('closeDate', 'Close Date');
+
+    expect(label).toContain('Close Date');
+    expect(label).toContain('ascending');
+  });
+
+  it('generates sort button label when sorted descending', () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.sortCol.set('leverage');
+    fixture.componentInstance.sortDir.set('desc');
+
+    const label = fixture.componentInstance.getSortButtonLabel('leverage', 'Leverage');
+
+    expect(label).toContain('Leverage');
+    expect(label).toContain('descending');
+  });
+
+  it('applies focus-visible:ring-2 styling to sort buttons', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const sortButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('th button') as NodeListOf<HTMLButtonElement>,
+    ).filter((btn) => btn.textContent?.trim() && !btn.textContent?.includes('Delete'));
+
+    expect(sortButtons.length).toBeGreaterThan(0);
+    sortButtons.forEach((btn) => {
+      expect(btn.className).toContain('focus-visible:ring-2');
+    });
+  });
+
+  it('applies aria-label to sort buttons', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const closeDateButton = Array.from(
+      fixture.nativeElement.querySelectorAll('th button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.includes('Close Date'));
+
+    expect(closeDateButton).toBeDefined();
+    expect(closeDateButton?.getAttribute('aria-label')).toBeTruthy();
+    expect(closeDateButton?.getAttribute('aria-label')).toContain('Close Date');
+  });
+
+  it('applies focus-visible:ring-2 styling to save button in edit mode', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.detectChanges();
+
+    const saveButton = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.trim() === 'Save') as HTMLButtonElement;
+
+    expect(saveButton).toBeDefined();
+    expect(saveButton.className).toContain('focus-visible:ring-2');
+  });
+
+  it('applies focus-visible:ring-2 styling to delete button in delete confirmation', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.openDeleteConfirm('trade-1');
+    fixture.detectChanges();
+
+    const deleteButton = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((btn) => btn.textContent?.trim() === 'Delete') as HTMLButtonElement;
+
+    expect(deleteButton).toBeDefined();
+    expect(deleteButton.className).toContain('focus-visible:ring-2');
+  });
+
+  it('applies focus-visible:ring-2 styling to edit input fields', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.startEdit(WIN_TRADE);
+    fixture.detectChanges();
+
+    const editInputs = Array.from(
+      fixture.nativeElement.querySelectorAll('tr input') as NodeListOf<HTMLInputElement>,
+    );
+
+    expect(editInputs.length).toBeGreaterThan(0);
+    editInputs.forEach((input) => {
+      expect(input.className).toContain('focus-visible:ring-2');
+    });
   });
 });

@@ -30,10 +30,10 @@ const DEFAULT_FORMULAS = [
   { field: 'investmentAll',     expression: 'volume * buyPrice',                                                  variables: ['volume', 'buyPrice'] },
   { field: 'sellValue',         expression: 'volume * sellPrice',                                                 variables: ['volume', 'sellPrice'] },
   { field: 'cost',              expression: 'volume * buyPrice / leverage',                                       variables: ['volume', 'buyPrice', 'leverage'] },
-  { field: 'nettoProfit',       expression: '(sellPrice - buyPrice) * volume / leverage',                        variables: ['sellPrice', 'buyPrice', 'volume', 'leverage'] },
-  { field: 'profitPercent',     expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100',                variables: ['sellPrice', 'buyPrice', 'leverage'] },
-  { field: 'profitRealPercent', expression: '(sellPrice - buyPrice) / buyPrice * 100',                           variables: ['sellPrice', 'buyPrice'] },
-  { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays', variables: ['sellPrice', 'buyPrice', 'leverage', 'holdingDays'] },
+  { field: 'nettoProfit',       expression: '(sellPrice - buyPrice) * volume * positionMultiplier - brokerCost',                     variables: ['sellPrice', 'buyPrice', 'volume', 'positionMultiplier', 'brokerCost'] },
+  { field: 'profitPercent',     expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 * positionMultiplier',                variables: ['sellPrice', 'buyPrice', 'leverage', 'positionMultiplier'] },
+  { field: 'profitRealPercent', expression: '(sellPrice - buyPrice) / buyPrice * 100 * positionMultiplier',                           variables: ['sellPrice', 'buyPrice', 'positionMultiplier'] },
+  { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays * positionMultiplier', variables: ['sellPrice', 'buyPrice', 'leverage', 'holdingDays', 'positionMultiplier'] },
   // result ('Win'/'Loss') is a string — not evaluable by expr-eval; handled in FormulaService.applyAll
   { field: 'result',            expression: 'nettoProfit',                                                        variables: ['nettoProfit'] },
 ];

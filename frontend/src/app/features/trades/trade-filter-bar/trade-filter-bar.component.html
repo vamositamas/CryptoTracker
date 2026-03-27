@@ -3,51 +3,51 @@
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M10 16h4" />
     </svg>
-    <span class="text-xs font-medium uppercase tracking-wide text-gray-500">Filters</span>
+    <span class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ 'trades.filters.title' | translate }}</span>
   </div>
 
   <form [formGroup]="form" class="flex flex-wrap items-end gap-3 flex-1">
     <div class="flex flex-col gap-1 min-w-32">
-      <label for="filter-position" class="text-xs font-medium text-gray-500">Token</label>
+      <label for="filter-position" class="text-xs font-medium text-gray-500">{{ 'trades.filters.token' | translate }}</label>
       <input
         id="filter-position"
         type="text"
         formControlName="position"
-        placeholder="e.g. BTC"
+        [attr.placeholder]="'trades.filters.tokenPlaceholder' | translate"
         autocomplete="off"
-        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors w-32"
+        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-colors w-32"
       />
     </div>
 
     <div class="flex flex-col gap-1 min-w-32">
-      <label for="filter-type" class="text-xs font-medium text-gray-500">Type</label>
+      <label for="filter-type" class="text-xs font-medium text-gray-500">{{ 'trades.filters.type' | translate }}</label>
       <input
         id="filter-type"
         type="text"
         formControlName="type"
-        placeholder="e.g. long"
+        [attr.placeholder]="'trades.filters.typePlaceholder' | translate"
         autocomplete="off"
-        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors w-32"
+        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-colors w-32"
       />
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="filter-date-from" class="text-xs font-medium text-gray-500">From</label>
+      <label for="filter-date-from" class="text-xs font-medium text-gray-500">{{ 'trades.filters.from' | translate }}</label>
       <input
         id="filter-date-from"
         type="date"
         formControlName="dateFrom"
-        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-colors"
       />
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="filter-date-to" class="text-xs font-medium text-gray-500">To</label>
+      <label for="filter-date-to" class="text-xs font-medium text-gray-500">{{ 'trades.filters.to' | translate }}</label>
       <input
         id="filter-date-to"
         type="date"
         formControlName="dateTo"
-        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-colors"
       />
     </div>
   </form>
@@ -61,7 +61,7 @@
       <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M2 2l10 10M12 2L2 12"/>
       </svg>
-      Clear all
+      {{ 'trades.filters.clearAll' | translate }}
     </button>
   }
 </div>

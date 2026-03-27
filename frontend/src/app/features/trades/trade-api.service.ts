@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { CreateTradeDto, EnrichedTrade, ApiError } from '../../core/models/trade.model';
+import { CreateTradeDto, EnrichedTrade, ApiError, TradeImportResponse } from '../../core/models/trade.model';
 
 export class TradeApiError extends Error {
   constructor(
@@ -53,6 +53,19 @@ export class TradeApiService {
   async deleteTrade(id: string): Promise<void> {
     try {
       await firstValueFrom(this.http.delete<{ deleted: boolean; id: string }>(`/api/v1/trades/${id}`));
+    } catch (err) {
+      if (err instanceof HttpErrorResponse && err.error?.error) {
+        throw new TradeApiError(err.error.error as ApiError, err.status);
+      }
+      throw err;
+    }
+  }
+
+  async importTrades(dtos: CreateTradeDto[]): Promise<TradeImportResponse> {
+    try {
+      return await firstValueFrom(
+        this.http.post<TradeImportResponse>('/api/v1/trades/import', { trades: dtos }),
+      );
     } catch (err) {
       if (err instanceof HttpErrorResponse && err.error?.error) {
         throw new TradeApiError(err.error.error as ApiError, err.status);

@@ -4,65 +4,101 @@
   (keydown.control.enter)="onSubmit()"
   class="bg-white border border-gray-200 rounded-xl p-6 space-y-4"
 >
-  <h2 class="text-lg font-semibold text-gray-900">New Trade</h2>
+  <h2 class="text-lg font-semibold text-gray-900">{{ 'trades.form.title' | translate }}</h2>
+
+  <div class="sr-only" aria-live="polite" aria-atomic="true">
+    @if (liveAnnouncementKey()) {
+      {{ liveAnnouncementKey()! | translate }}
+    }
+  </div>
 
   @if (submitError()) {
     <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3" role="alert">
-      {{ submitError() }}
+      {{ submitError()! | translate }}
     </div>
   }
 
-  <!-- Row 1: Token + Trade Type -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Token (position) -->
+  <!-- Row 1: Token + Position + Trade Type -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <!-- Token -->
     <div>
-      <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Token</label>
+      <label for="token" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.position' | translate }}</label>
       <select
-        id="position"
-        formControlName="position"
+        id="token"
+        formControlName="token"
         #firstField
-        [attr.aria-invalid]="isInvalid('position') || null"
-        [attr.aria-describedby]="isInvalid('position') ? 'position-error' : null"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
-        [class.border-red-400]="isInvalid('position')"
+        [attr.aria-invalid]="isInvalid('token') || null"
+        [attr.aria-describedby]="isInvalid('token') ? 'token-error' : null"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
+        [class.border-red-400]="isInvalid('token')"
       >
-        <option value="">Select token…</option>
+        <option value="">{{ 'trades.form.placeholders.position' | translate }}</option>
+        @if (tokens().length === 0) {
+          <option value="" disabled>{{ 'trades.form.empty.tokens' | translate }}</option>
+        }
         @for (token of tokens(); track token) {
           <option [value]="token">{{ token }}</option>
         }
       </select>
-      @if (isInvalid('position')) {
-        <p id="position-error" class="text-red-500 text-xs mt-1">{{ getError('position') }}</p>
+      @if (isInvalid('token')) {
+        <p id="token-error" class="text-red-500 text-xs mt-1">{{ getError('token')! | translate }}</p>
+      }
+    </div>
+
+    <!-- Position -->
+    <div>
+      <label for="tradePosition" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.tradePosition' | translate }}</label>
+      <select
+        id="tradePosition"
+        formControlName="tradePosition"
+        [attr.aria-invalid]="isInvalid('tradePosition') || null"
+        [attr.aria-describedby]="isInvalid('tradePosition') ? 'trade-position-error' : null"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
+        [class.border-red-400]="isInvalid('tradePosition')"
+      >
+        <option value="">{{ 'trades.form.placeholders.tradePosition' | translate }}</option>
+        @if (positions().length === 0) {
+          <option value="" disabled>{{ 'trades.form.empty.positions' | translate }}</option>
+        }
+        @for (position of positions(); track position) {
+          <option [value]="position">{{ position.charAt(0).toUpperCase() + position.slice(1) }}</option>
+        }
+      </select>
+      @if (isInvalid('tradePosition')) {
+        <p id="trade-position-error" class="text-red-500 text-xs mt-1">{{ getError('tradePosition')! | translate }}</p>
       }
     </div>
 
     <!-- Trade Type (type) -->
     <div>
-      <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Trade Type</label>
+      <label for="type" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.type' | translate }}</label>
       <select
         id="type"
         formControlName="type"
         [attr.aria-invalid]="isInvalid('type') || null"
         [attr.aria-describedby]="isInvalid('type') ? 'type-error' : null"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('type')"
       >
-        <option value="">Select type…</option>
+        <option value="">{{ 'trades.form.placeholders.type' | translate }}</option>
+        @if (tradeTypes().length === 0) {
+          <option value="" disabled>{{ 'trades.form.empty.types' | translate }}</option>
+        }
         @for (tt of tradeTypes(); track tt) {
           <option [value]="tt">{{ tt }}</option>
         }
       </select>
       @if (isInvalid('type')) {
-        <p id="type-error" class="text-red-500 text-xs mt-1">{{ getError('type') }}</p>
+        <p id="type-error" class="text-red-500 text-xs mt-1">{{ getError('type')! | translate }}</p>
       }
     </div>
   </div>
 
-  <!-- Row 2: Leverage + Volume -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <!-- Row 2: Leverage + Volume + Broker Cost -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <!-- Leverage -->
     <div>
-      <label for="leverage" class="block text-sm font-medium text-gray-700 mb-1">Leverage</label>
+      <label for="leverage" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.leverage' | translate }}</label>
       <input
         id="leverage"
         type="number"
@@ -72,19 +108,19 @@
         placeholder="1"
         [attr.aria-invalid]="isInvalid('leverage') || null"
         [attr.aria-describedby]="isInvalid('leverage') ? 'leverage-error' : (leverageWarning() ? 'leverage-warn' : null)"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('leverage')"
       />
       @if (isInvalid('leverage')) {
-        <p id="leverage-error" class="text-red-500 text-xs mt-1">{{ getError('leverage') }}</p>
+        <p id="leverage-error" class="text-red-500 text-xs mt-1">{{ getError('leverage')! | translate }}</p>
       } @else if (leverageWarning()) {
-        <p id="leverage-warn" class="text-amber-600 text-xs mt-1">Leverage above 100× is unusually high.</p>
+        <p id="leverage-warn" class="text-amber-600 text-xs mt-1">{{ 'trades.form.warnings.leverageHigh' | translate }}</p>
       }
     </div>
 
     <!-- Volume -->
     <div>
-      <label for="volume" class="block text-sm font-medium text-gray-700 mb-1">Volume</label>
+      <label for="volume" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.volume' | translate }}</label>
       <input
         id="volume"
         type="number"
@@ -94,11 +130,31 @@
         placeholder="0.00"
         [attr.aria-invalid]="isInvalid('volume') || null"
         [attr.aria-describedby]="isInvalid('volume') ? 'volume-error' : null"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('volume')"
       />
       @if (isInvalid('volume')) {
-        <p id="volume-error" class="text-red-500 text-xs mt-1">{{ getError('volume') }}</p>
+        <p id="volume-error" class="text-red-500 text-xs mt-1">{{ getError('volume')! | translate }}</p>
+      }
+    </div>
+
+    <!-- Broker Cost -->
+    <div>
+      <label for="brokerCost" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.brokerCost' | translate }}</label>
+      <input
+        id="brokerCost"
+        type="number"
+        formControlName="brokerCost"
+        step="0.01"
+        min="0"
+        placeholder="0.00"
+        [attr.aria-invalid]="isInvalid('brokerCost') || null"
+        [attr.aria-describedby]="isInvalid('brokerCost') ? 'brokerCost-error' : null"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
+        [class.border-red-400]="isInvalid('brokerCost')"
+      />
+      @if (isInvalid('brokerCost')) {
+        <p id="brokerCost-error" class="text-red-500 text-xs mt-1">{{ getError('brokerCost')! | translate }}</p>
       }
     </div>
   </div>
@@ -107,7 +163,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <!-- Buy Price -->
     <div>
-      <label for="buyPrice" class="block text-sm font-medium text-gray-700 mb-1">Buy Price (USDT)</label>
+      <label for="buyPrice" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.buyPrice' | translate }}</label>
       <input
         id="buyPrice"
         type="number"
@@ -117,19 +173,19 @@
         placeholder="0.00"
         [attr.aria-invalid]="isInvalid('buyPrice') || null"
         [attr.aria-describedby]="isInvalid('buyPrice') ? 'buyPrice-error' : (buyPriceWarning() ? 'buyPrice-warn' : null)"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('buyPrice')"
       />
       @if (isInvalid('buyPrice')) {
-        <p id="buyPrice-error" class="text-red-500 text-xs mt-1">{{ getError('buyPrice') }}</p>
+        <p id="buyPrice-error" class="text-red-500 text-xs mt-1">{{ getError('buyPrice')! | translate }}</p>
       } @else if (buyPriceWarning()) {
-        <p id="buyPrice-warn" class="text-amber-600 text-xs mt-1">Buy price is unusually low — please verify.</p>
+        <p id="buyPrice-warn" class="text-amber-600 text-xs mt-1">{{ 'trades.form.warnings.buyPriceLow' | translate }}</p>
       }
     </div>
 
     <!-- Sell Price -->
     <div>
-      <label for="sellPrice" class="block text-sm font-medium text-gray-700 mb-1">Sell Price (USDT)</label>
+      <label for="sellPrice" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.sellPrice' | translate }}</label>
       <input
         id="sellPrice"
         type="number"
@@ -139,11 +195,11 @@
         placeholder="0.00"
         [attr.aria-invalid]="isInvalid('sellPrice') || null"
         [attr.aria-describedby]="isInvalid('sellPrice') ? 'sellPrice-error' : null"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('sellPrice')"
       />
       @if (isInvalid('sellPrice')) {
-        <p id="sellPrice-error" class="text-red-500 text-xs mt-1">{{ getError('sellPrice') }}</p>
+        <p id="sellPrice-error" class="text-red-500 text-xs mt-1">{{ getError('sellPrice')! | translate }}</p>
       }
     </div>
   </div>
@@ -151,18 +207,18 @@
   <!-- Row 4: Close Date -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
-      <label for="closeDate" class="block text-sm font-medium text-gray-700 mb-1">Close Date</label>
+      <label for="closeDate" class="block text-sm font-medium text-gray-700 mb-1">{{ 'trades.form.fields.closeDate' | translate }}</label>
       <input
         id="closeDate"
         type="date"
         formControlName="closeDate"
         [attr.aria-invalid]="isInvalid('closeDate') || null"
         [attr.aria-describedby]="isInvalid('closeDate') ? 'closeDate-error' : null"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none w-full"
         [class.border-red-400]="isInvalid('closeDate')"
       />
       @if (isInvalid('closeDate')) {
-        <p id="closeDate-error" class="text-red-500 text-xs mt-1">{{ getError('closeDate') }}</p>
+        <p id="closeDate-error" class="text-red-500 text-xs mt-1">{{ getError('closeDate')! | translate }}</p>
       }
     </div>
   </div>
@@ -174,15 +230,15 @@
       [disabled]="submitting()"
       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed"
     >
-      {{ submitting() ? 'Saving…' : 'Save Trade' }}
+      {{ submitting() ? ('trades.form.actions.saving' | translate) : ('trades.form.actions.save' | translate) }}
     </button>
     <button
       type="button"
       (click)="onCancel()"
       class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
     >
-      Cancel
+      {{ 'trades.form.actions.cancel' | translate }}
     </button>
-    <span class="text-xs text-gray-400 self-center ml-auto hidden sm:block">Ctrl+Enter to save</span>
+    <span class="text-xs text-gray-400 self-center ml-auto hidden sm:block">{{ 'trades.form.actions.hotkey' | translate }}</span>
   </div>
 </form>

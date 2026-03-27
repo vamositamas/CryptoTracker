@@ -1,13 +1,44 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { importProvidersFrom } from '@angular/core';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
 import { AppShellComponent } from './app-shell.component';
+
+class FakeTranslateLoader implements TranslateLoader {
+  getTranslation(_lang: string): Observable<any> {
+    return of({
+      shell: {
+        appName: 'CryptoTracker',
+        skipToContent: 'Skip to main content',
+        language: 'Language',
+        lang: { en: 'EN', hu: 'HU' },
+        switchTrader: 'Switch trader',
+        nav: {
+          dashboard: 'Dashboard',
+          trades: 'Trades',
+          audit: 'Audit Trail',
+          masterData: 'Master Data',
+          formulas: 'Formulas',
+        },
+      },
+    });
+  }
+}
 
 describe('AppShellComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppShellComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        importProvidersFrom(
+          TranslateModule.forRoot({
+            loader: { provide: TranslateLoader, useClass: FakeTranslateLoader },
+          }),
+        ),
+      ],
     }).compileComponents();
   });
 
@@ -21,7 +52,7 @@ describe('AppShellComponent', () => {
     expect(skip!.textContent?.trim()).toBe('Skip to main content');
   });
 
-  it('renders nav links for all 4 sections', async () => {
+  it('renders nav links for all 5 sections', async () => {
     const fixture = TestBed.createComponent(AppShellComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -33,6 +64,7 @@ describe('AppShellComponent', () => {
     expect(labels).toContain('Trades');
     expect(labels).toContain('Audit Trail');
     expect(labels).toContain('Master Data');
+    expect(labels).toContain('Formulas');
   });
 
   it('all nav links have focus-visible ring classes', async () => {
@@ -42,9 +74,19 @@ describe('AppShellComponent', () => {
     const navLinks = Array.from(
       fixture.nativeElement.querySelectorAll('nav ul a'),
     ) as HTMLAnchorElement[];
-    expect(navLinks.length).toBe(4);
+    expect(navLinks.length).toBe(5);
     for (const link of navLinks) {
       expect(link.className).toContain('focus-visible:ring-2');
     }
+  });
+
+  it('main content area has id="main-content" for skip link target', async () => {
+    const fixture = TestBed.createComponent(AppShellComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const mainContent = el.querySelector('#main-content');
+    expect(mainContent).not.toBeNull();
+    expect(mainContent?.className).toContain('ml-60');
   });
 });

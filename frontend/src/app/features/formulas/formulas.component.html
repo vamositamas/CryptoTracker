@@ -1,0 +1,181 @@
+<main id="main-content" class="mx-auto max-w-7xl space-y-6 px-4 py-6">
+  <header class="space-y-2">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-gray-900">{{ 'formulas.title' | translate }}</h1>
+        <p class="max-w-3xl text-sm text-gray-500">{{ 'formulas.description' | translate }}</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reload()"
+          [disabled]="loading() || saving()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ 'formulas.actions.reload' | translate }}
+        </button>
+        <button
+          type="button"
+          (click)="save()"
+          [disabled]="loading() || saving() || !hasRows()"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ saving() ? ('formulas.actions.saving' | translate) : ('formulas.actions.save' | translate) }}
+        </button>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      <p class="font-medium">{{ 'formulas.guide.title' | translate }}</p>
+      <p class="mt-1">{{ 'formulas.guide.description' | translate }}</p>
+      <p class="mt-2 text-xs text-blue-800">
+        {{ 'formulas.guide.variables' | translate }}: {{ variableGuide.join(', ') }}
+      </p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error()!.startsWith('formulas.') ? (error()! | translate) : error()! }}
+    </div>
+  }
+
+  @if (previewStatus() !== 'idle') {
+    <div
+      class="rounded-xl px-4 py-3 text-sm"
+      [class.border]="true"
+      [class.border-amber-200]="previewStatus() === 'loading'"
+      [class.bg-amber-50]="previewStatus() === 'loading'"
+      [class.text-amber-800]="previewStatus() === 'loading'"
+      [class.border-emerald-200]="previewStatus() === 'valid'"
+      [class.bg-emerald-50]="previewStatus() === 'valid'"
+      [class.text-emerald-800]="previewStatus() === 'valid'"
+      [class.border-red-200]="previewStatus() === 'invalid'"
+      [class.bg-red-50]="previewStatus() === 'invalid'"
+      [class.text-red-700]="previewStatus() === 'invalid'"
+    >
+      @if (previewStatus() === 'loading') {
+        {{ 'formulas.preview.loading' | translate }}
+      } @else if (previewStatus() === 'valid') {
+        {{ 'formulas.preview.valid' | translate }}
+      } @else {
+        {{ previewError() && !previewError()!.startsWith('formulas.') ? previewError()! : ((previewError() || 'formulas.preview.failed') | translate) }}
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <section class="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      @for (_ of [1, 2, 3, 4]; track $index) {
+        <div class="h-14 animate-pulse rounded-xl bg-gray-100"></div>
+      }
+    </section>
+  } @else {
+    <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'formulas.table.columns.field' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'formulas.table.columns.expression' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'formulas.table.columns.variables' | translate }}</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'formulas.table.columns.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            @for (formula of formulas(); track formula.rowId) {
+              <tr>
+                <td class="px-4 py-3 align-top">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <input
+                        type="text"
+                        [value]="formula.field"
+                        (input)="updateField(formula.rowId, 'field', $any($event.target).value)"
+                        [readOnly]="formula.required"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 read-only:bg-gray-100 read-only:text-gray-500"
+                        [attr.aria-label]="'formulas.table.columns.field' | translate"
+                      />
+                      @if (formula.required) {
+                        <span class="rounded-full bg-gray-900 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">{{ 'formulas.table.requiredBadge' | translate }}</span>
+                      }
+                    </div>
+                    @if (fieldError(formula.rowId, 'field')) {
+                      <p class="text-xs text-red-600">{{ fieldError(formula.rowId, 'field')! | translate }}</p>
+                    }
+                  </div>
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <div class="space-y-2">
+                    <input
+                      type="text"
+                      [value]="formula.expression"
+                      (input)="updateField(formula.rowId, 'expression', $any($event.target).value)"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      [attr.aria-label]="'formulas.table.columns.expression' | translate"
+                    />
+                    @if (fieldError(formula.rowId, 'expression')) {
+                      <p class="text-xs text-red-600">{{ fieldError(formula.rowId, 'expression')! | translate }}</p>
+                    }
+                  </div>
+                </td>
+                <td class="px-4 py-3 align-top text-sm text-gray-600">
+                  <span class="break-words">{{ variablesLabel(formula).startsWith('formulas.') ? (variablesLabel(formula) | translate) : variablesLabel(formula) }}</span>
+                </td>
+                <td class="px-4 py-3 align-top text-right">
+                  @if (!formula.required) {
+                    @if (deleteConfirmId() === formula.rowId) {
+                      <div class="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          (click)="confirmRemoveFormula(formula.rowId)"
+                          class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          {{ 'formulas.actions.confirmRemove' | translate }}
+                        </button>
+                        <button
+                          type="button"
+                          (click)="cancelRemoveFormula()"
+                          class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          {{ 'common.cancel' | translate }}
+                        </button>
+                      </div>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="requestRemoveFormula(formula.rowId)"
+                        class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
+                        {{ 'formulas.actions.remove' | translate }}
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-4">
+        <div class="text-sm text-gray-500">
+          @if (dirty()) {
+            {{ 'formulas.status.unsaved' | translate }}
+          } @else {
+            {{ 'formulas.status.saved' | translate }}
+          }
+        </div>
+
+        <button
+          type="button"
+          (click)="addFormula()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          {{ 'formulas.actions.add' | translate }}
+        </button>
+      </div>
+    </section>
+  }
+</main>

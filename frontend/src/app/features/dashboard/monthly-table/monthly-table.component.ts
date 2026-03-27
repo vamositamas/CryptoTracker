@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MonthlyData } from '../dashboard.model';
 
 @Component({
   selector: 'app-monthly-table',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './monthly-table.component.html',
 })
 export class MonthlyTableComponent {

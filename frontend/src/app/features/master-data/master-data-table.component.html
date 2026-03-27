@@ -1,0 +1,175 @@
+<section class="space-y-4">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">{{ config().tabLabel | translate }}</h2>
+      <p class="text-sm text-gray-500">{{ 'masterData.table.description' | translate: { singular: (('masterData.singular.' + config().type) | translate) } }}</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="startAdd()"
+      [disabled]="isAdding() || saving()"
+      class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+    >
+      + {{ config().addLabel | translate }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error()! | translate }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-medium uppercase tracking-wide text-gray-500">
+        {{ config().fieldLabel | translate }}
+      </div>
+      @for (_ of [1, 2, 3]; track $index) {
+        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-4 last:border-b-0">
+          <div class="h-4 w-48 animate-pulse rounded bg-gray-200"></div>
+          <div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div>
+        </div>
+      }
+    </div>
+  } @else if (entries().length === 0 && !isAdding()) {
+    <div class="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+      <p class="text-sm text-gray-500">{{ config().emptyLabel | translate }}</p>
+      <button
+        type="button"
+        (click)="startAdd()"
+        class="text-sm font-medium text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 rounded"
+      >
+        {{ config().addLabel | translate }}
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <span>{{ config().fieldLabel | translate }}</span>
+        <span>{{ 'masterData.table.actions' | translate }}</span>
+      </div>
+
+      @if (isAdding()) {
+        <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-blue-100 bg-blue-50/50 px-4 py-4">
+          <div class="space-y-2">
+            <input
+              [(ngModel)]="draftValue"
+              (keydown)="onEditorKeydown($event)"
+              [attr.placeholder]="config().fieldLabel | translate"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            />
+            @if (inlineError()) {
+              <p class="text-xs text-red-500">{{ inlineError()! | translate }}</p>
+            }
+          </div>
+          <div class="flex items-start gap-2">
+            <button
+              type="button"
+              (click)="saveEdit()"
+              [disabled]="saving()"
+              class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+            >
+              {{ 'common.save' | translate }}
+            </button>
+            <button
+              type="button"
+              (click)="cancelEdit()"
+              class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+            >
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @for (entry of entries(); track entry.id) {
+        <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-gray-100 px-4 py-4 last:border-b-0">
+          @if (editingId() === entry.id) {
+            <div class="space-y-2">
+              <input
+                [(ngModel)]="draftValue"
+                (keydown)="onEditorKeydown($event)"
+                [attr.placeholder]="config().fieldLabel | translate"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              />
+              @if (inlineError()) {
+                <p class="text-xs text-red-500">{{ inlineError()! | translate }}</p>
+              }
+            </div>
+            <div class="flex items-start gap-2">
+              <button
+                type="button"
+                (click)="saveEdit()"
+                [disabled]="saving()"
+                class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+              >
+                {{ 'common.save' | translate }}
+              </button>
+              <button
+                type="button"
+                (click)="cancelEdit()"
+                class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+              >
+                {{ 'common.cancel' | translate }}
+              </button>
+            </div>
+          } @else {
+            <div>
+              <p class="text-sm font-medium text-gray-900">{{ displayValue(entry) }}</p>
+              @if (secondaryValue(entry); as secondary) {
+                <p class="text-xs text-gray-500">{{ secondary }}</p>
+              }
+            </div>
+            <div class="flex items-start gap-2">
+              @if (deleteConfirmId() === entry.id) {
+                <button
+                  type="button"
+                  (click)="confirmDelete(entry.id)"
+                  [disabled]="deletingId() === entry.id"
+                  class="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1"
+                >
+                  {{ 'common.delete' | translate }}
+                </button>
+                <button
+                  type="button"
+                  (click)="cancelDeleteConfirm()"
+                  class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                >
+                  {{ 'common.cancel' | translate }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="startEdit(entry)"
+                  [attr.aria-label]="'masterData.table.editItem' | translate: { value: displayValue(entry) }"
+                  class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                >
+                  ✎
+                </button>
+                <button
+                  type="button"
+                  (click)="openDeleteConfirm(entry.id)"
+                  [attr.aria-label]="'masterData.table.deleteItem' | translate: { value: displayValue(entry) }"
+                  class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    class="h-4 w-4"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75h6M4.5 6.75h15M9.75 10.5v5.25M14.25 10.5v5.25M6.75 6.75l.6 10.2a1.5 1.5 0 0 0 1.5 1.41h6.3a1.5 1.5 0 0 0 1.5-1.41l.6-10.2M9.75 3.75l.18-.54A1.5 1.5 0 0 1 11.35 2.25h1.3a1.5 1.5 0 0 1 1.42.96l.18.54" />
+                  </svg>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>

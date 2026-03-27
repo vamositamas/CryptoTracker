@@ -3,8 +3,11 @@
  * holdingDays is computed server-side from createdAt → closeDate.
  */
 export interface CreateTradeDto {
+  token?: string;
   type: string;
   position: string;
+  tradePosition?: string;
+  brokerCost?: number;
   leverage: number;
   volume: number;
   buyPrice: number;
@@ -43,6 +46,12 @@ export interface ApiError {
   code: string;
   message: string;
   field?: string;
+  row?: number;
+}
+
+export interface TradeImportResponse {
+  imported: number;
+  trades: EnrichedTrade[];
 }
 
 /** Active filter values for the trade list. Empty string means "no filter on this field". */

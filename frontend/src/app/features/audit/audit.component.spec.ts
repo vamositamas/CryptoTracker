@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { AuditComponent } from './audit.component';
 import { AuditApiService } from './audit-api.service';
 import { AuditEntry } from './audit.model';
+import { provideTranslateTesting } from '../../../testing/translate-test.providers';
 
 const ENTRY_CREATE: AuditEntry = {
   id: 'e1',
@@ -43,7 +44,7 @@ describe('AuditComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AuditComponent],
-      providers: [{ provide: AuditApiService, useValue: apiMock }],
+      providers: [...provideTranslateTesting(), { provide: AuditApiService, useValue: apiMock }],
     }).compileComponents();
   });
 

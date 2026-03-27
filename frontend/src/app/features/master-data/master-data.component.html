@@ -1,0 +1,28 @@
+<main id="main-content" class="mx-auto max-w-7xl space-y-6 px-4 py-6">
+  <header class="space-y-2">
+    <h1 class="text-2xl font-bold text-gray-900">{{ 'masterData.title' | translate }}</h1>
+    <p class="text-sm text-gray-500">{{ pageDescriptionKey() | translate }}</p>
+  </header>
+
+  <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-4" role="tablist" [attr.aria-label]="'masterData.tabAria' | translate">
+    @for (tab of tabs; track tab.type) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab().type === tab.type"
+        (click)="setActiveTab(tab)"
+        class="rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+        [class.bg-blue-600]="activeTab().type === tab.type"
+        [class.text-white]="activeTab().type === tab.type"
+        [class.bg-white]="activeTab().type !== tab.type"
+        [class.text-gray-700]="activeTab().type !== tab.type"
+        [class.border]="activeTab().type !== tab.type"
+        [class.border-gray-300]="activeTab().type !== tab.type"
+      >
+        {{ tab.tabLabel | translate }}
+      </button>
+    }
+  </div>
+
+  <app-master-data-table [config]="activeTab()" />
+</main>

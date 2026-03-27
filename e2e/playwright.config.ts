@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export default defineConfig({
   testDir: './tests',
@@ -20,6 +23,11 @@ export default defineConfig({
       url: 'http://localhost:3001/api/v1/health',
       reuseExistingServer: !process.env['CI'],
       timeout: 30000,
+      env: {
+        DATA_DIR: process.env['DATA_DIR'] || path.join(os.tmpdir(), `crypto-tracker-test-${Date.now()}`),
+      },
     },
   ],
+    // globalSetup: require.resolve('./global-setup.ts'),
+    // globalTeardown: require.resolve('./global-teardown.ts'),
 });

@@ -1,16 +1,38 @@
 <main id="main-content" class="px-4 py-6 max-w-7xl mx-auto space-y-6">
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-900">Trades</h1>
-    @if (!showForm()) {
+    <h1 class="text-2xl font-bold text-gray-900">{{ 'trades.title' | translate }}</h1>
+    <div class="flex items-center gap-2">
+      <input
+        #excelFileInput
+        type="file"
+        accept=".xlsx,.xls,.xlsm"
+        class="hidden"
+        (change)="onImportFileSelected($event)"
+      />
       <button
         type="button"
-        (click)="openForm()"
-        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
-        title="New trade (N)"
+        (click)="excelFileInput.click()"
+        [disabled]="importing()"
+        class="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        + New Trade
+        {{ importing() ? ('trades.import.actions.importing' | translate) : ('trades.import.actions.import' | translate) }}
       </button>
-    }
+      @if (!showForm()) {
+        <button
+          type="button"
+          (click)="openForm()"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
+          [attr.title]="'trades.newTradeWithShortcut' | translate"
+        >
+          {{ 'trades.newTrade' | translate }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+    <p class="font-medium">{{ 'trades.import.title' | translate }}</p>
+    <p class="mt-1">{{ 'trades.import.description' | translate }}</p>
   </div>
 
   @if (showForm()) {
@@ -41,7 +63,27 @@
       role="status"
       aria-live="polite"
     >
-      {{ deleteErrorToast() }}
+      {{ deleteErrorToast()! | translate }}
+    </div>
+  }
+
+  @if (importSuccess()) {
+    <div
+      class="fixed bottom-4 right-4 z-50 max-w-sm px-4 py-3 rounded-lg shadow-lg bg-emerald-600 text-white text-sm"
+      role="status"
+      aria-live="polite"
+    >
+      {{ 'trades.import.success' | translate: { count: importSuccess()!.count, fileName: importSuccess()!.fileName } }}
+    </div>
+  }
+
+  @if (importError()) {
+    <div
+      class="fixed bottom-4 right-4 z-50 max-w-sm px-4 py-3 rounded-lg shadow-lg bg-red-600 text-white text-sm"
+      role="status"
+      aria-live="polite"
+    >
+      {{ importError()!.startsWith('trades.') ? (importError()! | translate) : importError()! }}
     </div>
   }
 </main>

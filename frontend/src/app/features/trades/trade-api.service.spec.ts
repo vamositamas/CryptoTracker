@@ -160,4 +160,29 @@ describe('TradeApiService', () => {
       await expect(promise).rejects.toBeInstanceOf(TradeApiError);
     });
   });
+
+  describe('importTrades', () => {
+    const dto = {
+      type: 'scalp',
+      token: 'DOT',
+      position: 'DOT',
+      tradePosition: 'short',
+      brokerCost: 0.06,
+      leverage: 10,
+      volume: 47.8,
+      buyPrice: 2.092,
+      sellPrice: 2.079,
+      closeDate: '2026-01-09',
+    };
+
+    it('POSTs the trades array to /api/v1/trades/import', async () => {
+      const promise = service.importTrades([dto]);
+      const req = httpTesting.expectOne('/api/v1/trades/import');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ trades: [dto] });
+      req.flush({ imported: 1, trades: [ENRICHED] }, { status: 201, statusText: 'Created' });
+
+      await expect(promise).resolves.toEqual({ imported: 1, trades: [ENRICHED] });
+    });
+  });
 });

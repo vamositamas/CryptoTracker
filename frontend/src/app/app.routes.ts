@@ -4,7 +4,7 @@ import { traderGuard } from './core/guards/trader.guard';
 export const routes: Routes = [
   {
     path: 'select-trader',
-    title: 'Select Trader — CryptoTracker',
+    title: 'routeTitles.selectTrader',
     loadComponent: () =>
       import('./features/user-selector/user-selector.component').then(m => m.UserSelectorComponent),
   },
@@ -17,27 +17,33 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
-        title: 'Dashboard — CryptoTracker',
+        title: 'routeTitles.dashboard',
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
       },
       {
         path: 'trades',
-        title: 'Trades — CryptoTracker',
+        title: 'routeTitles.trades',
         loadComponent: () =>
           import('./features/trades/trades.component').then(m => m.TradesComponent),
       },
       {
         path: 'audit',
-        title: 'Audit Trail — CryptoTracker',
+        title: 'routeTitles.audit',
         loadComponent: () =>
           import('./features/audit/audit.component').then(m => m.AuditComponent),
       },
       {
         path: 'master-data',
-        title: 'Master Data — CryptoTracker',
+        title: 'routeTitles.masterData',
         loadComponent: () =>
           import('./features/master-data/master-data.component').then(m => m.MasterDataComponent),
+      },
+      {
+        path: 'formulas',
+        title: 'routeTitles.formulas',
+        loadComponent: () =>
+          import('./features/formulas/formulas.component').then(m => m.FormulasComponent),
       },
     ],
   },

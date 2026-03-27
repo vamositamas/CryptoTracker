@@ -1,12 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuditApiService } from './audit-api.service';
 import { AuditEntry, AuditFilterState } from './audit.model';
 
 @Component({
   selector: 'app-audit',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './audit.component.html',
 })
 export class AuditComponent implements OnInit {
@@ -44,7 +45,7 @@ export class AuditComponent implements OnInit {
       // Most-recent first
       this.entries.set([...entries].reverse());
     } catch {
-      this.error.set('Failed to load audit trail. Please try again.');
+      this.error.set('audit.errors.loadFailed');
     } finally {
       this.loading.set(false);
     }
@@ -75,7 +76,9 @@ export class AuditComponent implements OnInit {
       const obj = value as Record<string, unknown>;
       // For trade objects, show a compact summary
       if ('position' in obj && 'type' in obj) {
-        return `${obj['position']} ${obj['type']}`;
+        return [obj['position'], obj['tradePosition'], obj['type']]
+          .filter((part) => typeof part === 'string' && part.trim() !== '')
+          .join(' ');
       }
       return JSON.stringify(value);
     }

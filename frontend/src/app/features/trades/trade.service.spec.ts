@@ -43,6 +43,7 @@ describe('TradeService', () => {
     createTrade: ReturnType<typeof vi.fn>;
     updateTrade: ReturnType<typeof vi.fn>;
     deleteTrade: ReturnType<typeof vi.fn>;
+    importTrades: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -51,6 +52,7 @@ describe('TradeService', () => {
       createTrade: vi.fn().mockResolvedValue(BASE_TRADE),
       updateTrade: vi.fn().mockResolvedValue(BASE_TRADE),
       deleteTrade: vi.fn().mockResolvedValue(undefined),
+      importTrades: vi.fn().mockResolvedValue({ imported: 1, trades: [BASE_TRADE] }),
     };
 
     TestBed.configureTestingModule({
@@ -176,6 +178,19 @@ describe('TradeService', () => {
 
       expect(service.trades()).toHaveLength(1);
       expect(service.trades()[0].id).toBe('trade-1');
+    });
+  });
+
+  describe('importTrades', () => {
+    it('prepends imported trades and returns the imported count', async () => {
+      service.trades.set([{ ...BASE_TRADE, id: 'existing' }]);
+
+      const imported = await service.importTrades([DTO]);
+
+      expect(imported).toBe(1);
+      expect(apiMock.importTrades).toHaveBeenCalledWith([DTO]);
+      expect(service.trades()[0].id).toBe('trade-1');
+      expect(service.trades()[0].flashNew).toBe(true);
     });
   });
 });
