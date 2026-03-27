@@ -21,6 +21,13 @@ export type SortableColumn =
   | 'profitPercent'
   | 'result';
 
+interface DailyAggregateCell {
+  isFirst: boolean;
+  rowSpan: number;
+  totalNetProfit: number;
+  totalProfitPercent: number;
+}
+
 @Component({
   selector: 'app-trade-table',
   standalone: true,
@@ -104,6 +111,40 @@ export class TradeTableComponent implements OnInit {
           : String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
       return dir === 'asc' ? cmp : -cmp;
     });
+  });
+
+  readonly dailyAggregateMeta = computed(() => {
+    const rows = this.sortedTrades();
+    const meta = new Map<string, DailyAggregateCell>();
+
+    let index = 0;
+    while (index < rows.length) {
+      const groupDate = rows[index].closeDate;
+      let cursor = index;
+      let totalNetProfit = 0;
+      let totalProfitPercent = 0;
+
+      while (cursor < rows.length && rows[cursor].closeDate === groupDate) {
+        totalNetProfit += rows[cursor].nettoProfit;
+        totalProfitPercent += rows[cursor].profitPercent;
+        cursor += 1;
+      }
+
+      const rowSpan = cursor - index;
+      for (let groupIndex = index; groupIndex < cursor; groupIndex += 1) {
+        const trade = rows[groupIndex];
+        meta.set(trade.id, {
+          isFirst: groupIndex === index,
+          rowSpan,
+          totalNetProfit,
+          totalProfitPercent,
+        });
+      }
+
+      index = cursor;
+    }
+
+    return meta;
   });
 
   sortBy(col: SortableColumn): void {
@@ -252,6 +293,15 @@ export class TradeTableComponent implements OnInit {
 
   toNumber(value: string): number {
     return Number(value);
+  }
+
+  getDailyAggregateCell(tradeId: string): DailyAggregateCell {
+    return this.dailyAggregateMeta().get(tradeId) ?? {
+      isFirst: true,
+      rowSpan: 1,
+      totalNetProfit: 0,
+      totalProfitPercent: 0,
+    };
   }
 
   private withDraftValue(options: string[], current: string): string[] {

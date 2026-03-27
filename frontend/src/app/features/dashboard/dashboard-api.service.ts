@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { KpiData, MonthlyData } from './dashboard.model';
+import { DashboardOverview, KpiData, MonthlyData } from './dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardApiService {
@@ -16,6 +16,13 @@ export class DashboardApiService {
   async getMonthly(): Promise<MonthlyData[]> {
     return await firstValueFrom(
       this.http.get<MonthlyData[]>('/api/v1/dashboard/monthly'),
+    );
+  }
+
+  async getOverview(year?: number): Promise<DashboardOverview> {
+    const params = year === undefined ? undefined : new HttpParams().set('year', String(year));
+    return await firstValueFrom(
+      this.http.get<DashboardOverview>('/api/v1/dashboard/overview', { params }),
     );
   }
 }

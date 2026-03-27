@@ -1,7 +1,14 @@
-<main id="main-content" class="px-4 py-6 max-w-7xl mx-auto space-y-6">
-  <div class="flex items-center justify-between">
+<main id="main-content" class="px-6 py-6 space-y-6">
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
     <h1 class="text-2xl font-bold text-gray-900">{{ 'trades.title' | translate }}</h1>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        (click)="onDownloadTemplate()"
+        class="border border-gray-300 bg-white text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
+      >
+        {{ 'trades.import.actions.template' | translate }}
+      </button>
       <input
         #excelFileInput
         type="file"
@@ -13,7 +20,7 @@
         type="button"
         (click)="excelFileInput.click()"
         [disabled]="importing()"
-        class="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+        class="border border-gray-300 bg-white text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed"
       >
         {{ importing() ? ('trades.import.actions.importing' | translate) : ('trades.import.actions.import' | translate) }}
       </button>
@@ -21,7 +28,7 @@
         <button
           type="button"
           (click)="openForm()"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
+          class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 text-sm font-medium"
           [attr.title]="'trades.newTradeWithShortcut' | translate"
         >
           {{ 'trades.newTrade' | translate }}

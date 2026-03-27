@@ -84,6 +84,20 @@ const MOCK_RAW_TRADE_MARCH_WIN = {
   nettoProfit: 200,
 };
 
+const MOCK_RAW_TRADE_2025_WIN = {
+  id: 'trade-5',
+  createdAt: '2025-01-07T00:00:00.000Z',
+  holdingDays: 8,
+  type: 'spot',
+  position: 'BTC',
+  leverage: 1,
+  volume: 0.4,
+  buyPrice: 45000,
+  sellPrice: 47000,
+  closeDate: '2025-01-15',
+  nettoProfit: 800,
+};
+
 describe('GET /kpis', () => {
   afterEach(() => vi.restoreAllMocks());
 
@@ -202,5 +216,72 @@ describe('GET /monthly', () => {
 
     expect(res.body[0]).toMatchObject({ year: 2023, month: 12, tradeCount: 1, netProfit: 1000 });
     expect(res.body[1]).toMatchObject({ year: 2024, month: 1, tradeCount: 1, netProfit: 2000 });
+  });
+});
+
+describe('GET /overview', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('returns empty overview when trader has no trades', async () => {
+    vi.mocked(storageService.read).mockRejectedValue(new Error('ENOENT'));
+
+    const res = await request(app).get('/overview').set('x-trader-username', 'tamas');
+    expect(res.status).toBe(200);
+    expect(res.body.kpis.totalTrades).toBe(0);
+    expect(res.body.monthly).toEqual([]);
+    expect(res.body.tokenStats).toEqual([]);
+    expect(res.body.weekdayStats).toEqual([]);
+  });
+
+  it('returns rich aggregates for mixed trades', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([
+      MOCK_RAW_TRADE_WIN,
+      MOCK_RAW_TRADE_LOSS,
+      MOCK_RAW_TRADE_MARCH_WIN,
+    ]);
+
+    const res = await request(app).get('/overview').set('x-trader-username', 'tamas');
+    expect(res.status).toBe(200);
+    expect(res.body.kpis.totalTrades).toBe(3);
+    expect(res.body.kpis.bestSingleTrade).toBe(2500);
+    expect(res.body.kpis.worstSingleTrade).toBe(-200);
+    expect(res.body.split.winTrades).toBe(2);
+    expect(res.body.split.lossTrades).toBe(1);
+    expect(res.body.monthly.length).toBe(2);
+    expect(Array.isArray(res.body.tokenStats)).toBe(true);
+    expect(Array.isArray(res.body.weekdayStats)).toBe(true);
+  });
+
+  it('filters overview data by selected year', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([
+      MOCK_RAW_TRADE_WIN,
+      MOCK_RAW_TRADE_LOSS,
+      MOCK_RAW_TRADE_2025_WIN,
+    ]);
+
+    const res = await request(app)
+      .get('/overview?year=2025')
+      .set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.body.kpis.totalTrades).toBe(1);
+    expect(res.body.kpis.totalNetProfit).toBe(800);
+    expect(res.body.monthly).toHaveLength(1);
+    expect(res.body.monthly[0]).toMatchObject({ year: 2025, month: 1, tradeCount: 1 });
+  });
+
+  it('returns empty overview when selected year has no trades', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([
+      MOCK_RAW_TRADE_WIN,
+      MOCK_RAW_TRADE_LOSS,
+    ]);
+
+    const res = await request(app)
+      .get('/overview?year=2030')
+      .set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.body.kpis.totalTrades).toBe(0);
+    expect(res.body.monthly).toEqual([]);
   });
 });

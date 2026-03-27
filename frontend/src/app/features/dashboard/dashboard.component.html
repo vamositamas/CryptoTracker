@@ -1,5 +1,49 @@
-<main id="main-content" class="px-4 py-6 max-w-7xl mx-auto space-y-6">
-  <h1 class="text-2xl font-bold text-gray-900">{{ 'dashboard.title' | translate }}</h1>
+<main id="main-content" class="px-6 py-6 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">{{ 'dashboard.title' | translate }}</h1>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-sm text-gray-600">{{ 'dashboard.viewMode.label' | translate }}</span>
+
+      <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1">
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm rounded-md"
+          [class.bg-gray-900]="viewMode() === 'all'"
+          [class.text-white]="viewMode() === 'all'"
+          [class.text-gray-700]="viewMode() !== 'all'"
+          (click)="onViewModeChange('all')"
+        >
+          {{ 'dashboard.viewMode.all' | translate }}
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm rounded-md"
+          [class.bg-gray-900]="viewMode() === 'year'"
+          [class.text-white]="viewMode() === 'year'"
+          [class.text-gray-700]="viewMode() !== 'year'"
+          (click)="onViewModeChange('year')"
+        >
+          {{ 'dashboard.viewMode.year' | translate }}
+        </button>
+      </div>
+
+      @if (viewMode() === 'year') {
+        <label class="sr-only" for="dashboard-year-select">{{ 'dashboard.viewMode.yearSelect' | translate }}</label>
+        <select
+          id="dashboard-year-select"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+          [disabled]="availableYears().length === 0 || loading()"
+          [value]="selectedYearValue()"
+          (change)="onYearChange($any($event.target).value)"
+        >
+          @for (year of availableYears(); track year) {
+            <option [value]="year">{{ year }}</option>
+          }
+        </select>
+      }
+    </div>
+  </div>
 
   <!-- Error state -->
   @if (!loading() && error()) {
@@ -53,10 +97,155 @@
       />
     </div>
 
-    <!-- Monthly Table -->
-    <app-monthly-table
-      [data]="monthly()"
-      [loading]="loading()"
-    />
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-3">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">{{ 'dashboard.sections.summary' | translate }}</h2>
+        <dl class="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.totalProfitPercent' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ totalProfitPercentDisplay() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.averageProfitPercent' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ averageProfitPercentDisplay() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.averageDailyProfitPercent' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ averageDailyProfitPercentDisplay() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.winLossRatio' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ winLossRatioDisplay() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.shortLongRatio' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ shortLongRatioDisplay() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'dashboard.kpis.bestToken' | translate }}</dt>
+            <dd class="font-semibold text-gray-900">{{ bestToken()?.token ?? ('common.dash' | translate) }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">{{ 'dashboard.sections.tradesSplit' | translate }}</h2>
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs text-gray-500">
+            <span>{{ 'dashboard.split.win' | translate }}</span>
+            <span>{{ split().winTrades }}</span>
+          </div>
+          <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div class="h-full bg-emerald-500" [style.width.%]="split().winTrades + split().lossTrades === 0 ? 0 : (split().winTrades / (split().winTrades + split().lossTrades)) * 100"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-500">
+            <span>{{ 'dashboard.split.loss' | translate }}</span>
+            <span>{{ split().lossTrades }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-gray-100">
+          <div class="flex justify-between text-xs text-gray-500">
+            <span>{{ 'dashboard.split.short' | translate }}</span>
+            <span>{{ split().shortTrades }}</span>
+          </div>
+          <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div class="h-full bg-blue-500" [style.width.%]="split().shortTrades + split().longTrades === 0 ? 0 : (split().shortTrades / (split().shortTrades + split().longTrades)) * 100"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-500">
+            <span>{{ 'dashboard.split.long' | translate }}</span>
+            <span>{{ split().longTrades }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-3">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">{{ 'dashboard.sections.extremes' | translate }}</h2>
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between">
+            <dt class="text-gray-500">{{ 'dashboard.kpis.maxDailyProfitPercent' | translate }}</dt>
+            <dd class="font-semibold text-emerald-600">{{ maxDailyProfitPercentDisplay() }}</dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-gray-500">{{ 'dashboard.kpis.minDailyProfitPercent' | translate }}</dt>
+            <dd class="font-semibold text-red-600">{{ minDailyProfitPercentDisplay() }}</dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-gray-500">{{ 'dashboard.kpis.maxProfitByTradePercent' | translate }}</dt>
+            <dd class="font-semibold text-emerald-600">{{ maxProfitByTradePercentDisplay() }}</dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-gray-500">{{ 'dashboard.kpis.maxLossByTradePercent' | translate }}</dt>
+            <dd class="font-semibold text-red-600">{{ maxLossByTradePercentDisplay() }}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <app-monthly-table
+        [data]="monthly()"
+        [loading]="loading()"
+      />
+
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.tokens.title' | translate }}</h2>
+        </div>
+        @if (tokenStats().length === 0) {
+          <div class="px-6 py-8 text-sm text-gray-400 text-center">{{ 'dashboard.tokens.empty' | translate }}</div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th class="px-4 py-3 text-left">{{ 'dashboard.tokens.columns.token' | translate }}</th>
+                  <th class="px-4 py-3 text-right">{{ 'dashboard.tokens.columns.trades' | translate }}</th>
+                  <th class="px-4 py-3 text-right">{{ 'dashboard.tokens.columns.profit' | translate }}</th>
+                  <th class="px-4 py-3 text-right">{{ 'dashboard.tokens.columns.winRate' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                @for (row of tokenStats(); track row.token) {
+                  <tr>
+                    <td class="px-4 py-3">
+                      <div class="font-medium text-gray-900">{{ row.token }}</div>
+                      <div class="mt-1 h-1.5 rounded bg-gray-100 overflow-hidden">
+                        <div class="h-full" [class.bg-emerald-500]="row.netProfit >= 0" [class.bg-red-500]="row.netProfit < 0" [style.width]="tokenBarWidth(row.netProfit)"></div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-right tabular-nums text-gray-700">{{ row.tradeCount }}</td>
+                    <td class="px-4 py-3 text-right tabular-nums" [class.text-emerald-600]="row.netProfit >= 0" [class.text-red-600]="row.netProfit < 0">{{ row.netProfit.toFixed(2) }}</td>
+                    <td class="px-4 py-3 text-right tabular-nums text-gray-700">{{ (row.winRate * 100).toFixed(1) }}%</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.weekdays.title' | translate }}</h2>
+      </div>
+      @if (weekdayStats().length === 0) {
+        <div class="px-6 py-8 text-sm text-gray-400 text-center">{{ 'dashboard.weekdays.empty' | translate }}</div>
+      } @else {
+        <div class="p-4 space-y-3">
+          @for (row of weekdayStats(); track row.weekday) {
+            <div class="grid grid-cols-[120px_1fr_90px_110px] items-center gap-3 text-sm">
+              <div class="text-gray-700 font-medium">{{ row.weekday }}</div>
+              <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
+                <div class="h-full bg-blue-500" [style.width]="weekdayBarWidth(row.tradeCount)"></div>
+              </div>
+              <div class="text-right tabular-nums text-gray-600">{{ row.tradeCount }}</div>
+              <div class="text-right tabular-nums" [class.text-emerald-600]="row.netProfit >= 0" [class.text-red-600]="row.netProfit < 0">{{ row.netProfit.toFixed(2) }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
   }
 </main>

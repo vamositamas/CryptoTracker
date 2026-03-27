@@ -1,8 +1,8 @@
 @if (loading()) {
   <!-- Skeleton rows -->
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+  <div class="max-w-full overflow-x-auto rounded-xl border border-gray-200">
+    <table class="w-full min-w-max text-xs lg:text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs">
         <tr>
           <th class="px-4 py-3 text-left">{{ 'trades.table.columns.closeDate' | translate }}</th>
           <th class="px-4 py-3 text-left">{{ 'trades.table.columns.position' | translate }}</th>
@@ -15,13 +15,15 @@
           <th class="px-4 py-3 text-right">{{ 'trades.table.columns.sellPrice' | translate }}</th>
           <th class="px-4 py-3 text-right">{{ 'trades.table.columns.netProfit' | translate }}</th>
           <th class="px-4 py-3 text-right">{{ 'trades.table.columns.profitPercent' | translate }}</th>
+          <th class="px-4 py-3 text-right">{{ 'trades.table.columns.dailyNetProfit' | translate }}</th>
+          <th class="px-4 py-3 text-right">{{ 'trades.table.columns.dailyProfitPercent' | translate }}</th>
           <th class="px-4 py-3 text-center">{{ 'trades.table.columns.result' | translate }}</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 bg-white">
         @for (_ of [1, 2, 3]; track $index) {
           <tr>
-            @for (__ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track $index) {
+            @for (__ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track $index) {
               <td class="px-4 py-3">
                 <div class="animate-pulse bg-gray-200 rounded h-4 w-full"></div>
               </td>
@@ -60,9 +62,9 @@
   </div>
 } @else {
   <!-- Data table -->
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+  <div class="max-w-full overflow-x-auto rounded-xl border border-gray-200">
+    <table class="w-full min-w-max text-xs lg:text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs">
         <tr>
           <th scope="col" class="px-4 py-3 text-left font-medium" [attr.aria-sort]="ariaSort('closeDate')">
             <button
@@ -185,6 +187,16 @@
               <ng-container *ngTemplateOutlet="sortIcon; context: { col: 'profitPercent' }" />
             </button>
           </th>
+          <th scope="col" class="px-4 py-3 text-right font-medium tabular-nums">
+            <span class="flex items-center justify-end gap-1 w-full px-1 py-0.5">
+              {{ 'trades.table.columns.dailyNetProfit' | translate }}
+            </span>
+          </th>
+          <th scope="col" class="px-4 py-3 text-right font-medium tabular-nums">
+            <span class="flex items-center justify-end gap-1 w-full px-1 py-0.5">
+              {{ 'trades.table.columns.dailyProfitPercent' | translate }}
+            </span>
+          </th>
           <th scope="col" class="px-4 py-3 text-center font-medium" [attr.aria-sort]="ariaSort('result')">
             <button
               type="button"
@@ -200,6 +212,7 @@
       </thead>
       <tbody class="divide-y divide-gray-100 bg-white">
         @for (trade of sortedTrades(); track trade.id) {
+          @let dailyCell = getDailyAggregateCell(trade.id);
           <tr
             class="hover:bg-gray-50 motion-safe:transition-colors motion-safe:duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             [class.bg-emerald-50]="trade.flashNew"
@@ -397,6 +410,26 @@
             >
               {{ trade.profitPercent >= 0 ? '+' : '' }}{{ trade.profitPercent | number: '1.2-2' }}%
             </td>
+            @if (dailyCell.isFirst) {
+              <td
+                class="px-4 py-3 text-right tabular-nums font-semibold"
+                [attr.rowspan]="dailyCell.rowSpan"
+                [attr.data-testid]="'daily-net-profit-cell'"
+                [class.text-emerald-600]="dailyCell.totalNetProfit >= 0"
+                [class.text-red-600]="dailyCell.totalNetProfit < 0"
+              >
+                {{ dailyCell.totalNetProfit >= 0 ? '+' : '' }}{{ dailyCell.totalNetProfit | number: '1.2-4' }}
+              </td>
+              <td
+                class="px-4 py-3 text-right tabular-nums font-semibold"
+                [attr.rowspan]="dailyCell.rowSpan"
+                [attr.data-testid]="'daily-profit-percent-cell'"
+                [class.text-emerald-600]="dailyCell.totalProfitPercent >= 0"
+                [class.text-red-600]="dailyCell.totalProfitPercent < 0"
+              >
+                {{ dailyCell.totalProfitPercent >= 0 ? '+' : '' }}{{ dailyCell.totalProfitPercent | number: '1.2-2' }}%
+              </td>
+            }
             <td class="px-4 py-3 text-center">
               @if (isEditing(trade.id)) {
                 <div class="flex items-center justify-center gap-2" (click)="$event.stopPropagation()">

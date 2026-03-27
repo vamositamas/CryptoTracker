@@ -134,6 +134,24 @@ describe('TradeTableComponent', () => {
     expect(rows.length).toBe(2);
   });
 
+  it('renders merged daily aggregate cells with summed values by close date', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [WIN_TRADE, LOSS_TRADE, ALT_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dailyNetCells = fixture.nativeElement.querySelectorAll('[data-testid="daily-net-profit-cell"]') as NodeListOf<HTMLTableCellElement>;
+    const dailyProfitCells = fixture.nativeElement.querySelectorAll('[data-testid="daily-profit-percent-cell"]') as NodeListOf<HTMLTableCellElement>;
+
+    expect(dailyNetCells.length).toBe(2);
+    expect(dailyProfitCells.length).toBe(2);
+    expect(dailyNetCells[0].getAttribute('rowspan')).toBe('2');
+    expect(dailyProfitCells[0].getAttribute('rowspan')).toBe('2');
+    expect((dailyNetCells[0].textContent ?? '').replace(/\s+/g, '')).toContain('+0.00');
+    expect((dailyProfitCells[0].textContent ?? '').replace(/\s+/g, '')).toContain('+0.00%');
+  });
+
   it('shows Win badge with emerald styling', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);

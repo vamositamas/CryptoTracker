@@ -5,7 +5,7 @@ import { TradeService } from './trade.service';
 import { TradeFormComponent } from './trade-form/trade-form.component';
 import { TradeFilterBarComponent } from './trade-filter-bar/trade-filter-bar.component';
 import { TradeTableComponent } from './trade-table/trade-table.component';
-import { readTradeWorkbook } from './trade-import.parser';
+import { downloadTradeImportTemplate, readTradeWorkbook } from './trade-import.parser';
 
 @Component({
   selector: 'app-trades',
@@ -155,6 +155,10 @@ export class TradesComponent implements OnInit {
         input.value = '';
       }
     }
+  }
+
+  onDownloadTemplate(): void {
+    downloadTradeImportTemplate();
   }
 
   @HostListener('document:keydown.n', ['$event'])

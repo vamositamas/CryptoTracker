@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { mapImportedTradeRow } from './trade-import.parser';
+import * as XLSX from 'xlsx';
+import {
+  TRADE_IMPORT_TEMPLATE_HEADERS,
+  TRADE_IMPORT_TEMPLATE_SAMPLE_ROW,
+  mapImportedTradeRow,
+} from './trade-import.parser';
 
 describe('mapImportedTradeRow', () => {
   it('maps the Excel screenshot columns into a CreateTradeDto', () => {
@@ -44,5 +49,18 @@ describe('mapImportedTradeRow', () => {
     expect(dto.token).toBe('ZEC');
     expect(dto.tradePosition).toBe('long');
     expect(dto.brokerCost).toBe(0);
+  });
+
+  it('exports a stable template header and sample row shape', () => {
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      [...TRADE_IMPORT_TEMPLATE_HEADERS],
+      [...TRADE_IMPORT_TEMPLATE_SAMPLE_ROW],
+    ]);
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: '' });
+
+    expect(Object.keys(rows[0] ?? {})).toEqual([...TRADE_IMPORT_TEMPLATE_HEADERS]);
+    expect(rows[0]?.['Type']).toBe('SCALP');
+    expect(rows[0]?.['Position']).toBe('SHORT');
+    expect(rows[0]?.['Token name']).toBe('DOT');
   });
 });

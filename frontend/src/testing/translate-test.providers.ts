@@ -19,6 +19,12 @@ const EN_TRANSLATIONS = {
       description: 'No trades yet - start tracking to see your dashboard',
       goToTrades: 'Go to Trades ->',
     },
+    viewMode: {
+      label: 'View',
+      all: 'All data',
+      year: 'Selected year',
+      yearSelect: 'Select year',
+    },
     kpis: {
       totalTrades: 'Total Trades',
       totalNetProfit: 'Total Net Profit',
@@ -58,6 +64,7 @@ const EN_TRANSLATIONS = {
       actions: {
         import: 'Import Excel',
         importing: 'Importing...',
+        template: 'Download template',
       },
     },
     filters: {
@@ -143,6 +150,8 @@ const EN_TRANSLATIONS = {
         sellPrice: 'Sell Price',
         netProfit: 'Net Profit',
         profitPercent: 'Profit %',
+        dailyNetProfit: 'Daily Net Profit',
+        dailyProfitPercent: 'Daily Profit %',
         result: 'Result',
       },
       empty: {

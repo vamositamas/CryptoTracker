@@ -33,11 +33,52 @@
       "description": "Még nincs kötés - kezdje el a rögzítést az irányítópult megjelenítéséhez",
       "goToTrades": "Ugrás a Kötésekhez ->"
     },
+    "viewMode": {
+      "label": "Nézet",
+      "all": "Minden adat",
+      "year": "Kiválasztott év",
+      "yearSelect": "Év kiválasztása"
+    },
     "kpis": {
       "totalTrades": "Összes kötés",
       "totalNetProfit": "Összes nettó profit",
       "bestSingleTrade": "Legjobb egyedi kötés",
-      "winRate": "Találati arány"
+      "winRate": "Találati arány",
+      "totalProfitPercent": "Összesített profit %",
+      "averageProfitPercent": "Átlagos profit %",
+      "averageDailyProfitPercent": "Átlagos napi profit %",
+      "winLossRatio": "Nyerő / vesztes",
+      "shortLongRatio": "Short / long",
+      "bestToken": "Legjobb token",
+      "maxDailyProfitPercent": "Max napi profit %",
+      "minDailyProfitPercent": "Min napi profit %",
+      "maxProfitByTradePercent": "Max profit / kötés %",
+      "maxLossByTradePercent": "Max veszteség / kötés %"
+    },
+    "sections": {
+      "summary": "Összegzés",
+      "tradesSplit": "Kötés megoszlás",
+      "extremes": "Szélsőértékek"
+    },
+    "split": {
+      "win": "Nyerő kötések",
+      "loss": "Vesztes kötések",
+      "short": "Short kötések",
+      "long": "Long kötések"
+    },
+    "tokens": {
+      "title": "Token teljesítmény",
+      "empty": "Még nincs token teljesítmény adat",
+      "columns": {
+        "token": "Token",
+        "trades": "Kötések",
+        "profit": "Nettó profit",
+        "winRate": "Találati arány"
+      }
+    },
+    "weekdays": {
+      "title": "Hétköznap teljesítmény",
+      "empty": "Még nincs hétköznapi teljesítmény adat"
     },
     "monthly": {
       "title": "Havi teljesítmény",
@@ -71,7 +112,8 @@
       },
       "actions": {
         "import": "Excel import",
-        "importing": "Importálás..."
+        "importing": "Importálás...",
+        "template": "Sablon letöltése"
       }
     },
     "filters": {
@@ -157,6 +199,8 @@
         "sellPrice": "Eladási ár",
         "netProfit": "Nettó profit",
         "profitPercent": "Profit %",
+        "dailyNetProfit": "Napi nettó profit",
+        "dailyProfitPercent": "Napi profit %",
         "result": "Eredmény"
       },
       "empty": {

@@ -33,11 +33,52 @@
       "description": "No trades yet - start tracking to see your dashboard",
       "goToTrades": "Go to Trades ->"
     },
+    "viewMode": {
+      "label": "View",
+      "all": "All data",
+      "year": "Selected year",
+      "yearSelect": "Select year"
+    },
     "kpis": {
       "totalTrades": "Total Trades",
       "totalNetProfit": "Total Net Profit",
       "bestSingleTrade": "Best Single Trade",
-      "winRate": "Win Rate"
+      "winRate": "Win Rate",
+      "totalProfitPercent": "Total Profit %",
+      "averageProfitPercent": "Avg Profit %",
+      "averageDailyProfitPercent": "Avg Daily Profit %",
+      "winLossRatio": "Win / Loss",
+      "shortLongRatio": "Short / Long",
+      "bestToken": "Best Token",
+      "maxDailyProfitPercent": "Max Daily Profit %",
+      "minDailyProfitPercent": "Min Daily Profit %",
+      "maxProfitByTradePercent": "Max Profit / Trade %",
+      "maxLossByTradePercent": "Max Loss / Trade %"
+    },
+    "sections": {
+      "summary": "Summary",
+      "tradesSplit": "Trade Distribution",
+      "extremes": "Extremes"
+    },
+    "split": {
+      "win": "Win Trades",
+      "loss": "Loss Trades",
+      "short": "Short Trades",
+      "long": "Long Trades"
+    },
+    "tokens": {
+      "title": "Token Performance",
+      "empty": "No token performance data yet",
+      "columns": {
+        "token": "Token",
+        "trades": "Trades",
+        "profit": "Net Profit",
+        "winRate": "Win Rate"
+      }
+    },
+    "weekdays": {
+      "title": "Weekday Performance",
+      "empty": "No weekday performance data yet"
     },
     "monthly": {
       "title": "Monthly Performance",
@@ -71,7 +112,8 @@
       },
       "actions": {
         "import": "Import Excel",
-        "importing": "Importing..."
+        "importing": "Importing...",
+        "template": "Download template"
       }
     },
     "filters": {
@@ -157,6 +199,8 @@
         "sellPrice": "Sell Price",
         "netProfit": "Net Profit",
         "profitPercent": "Profit %",
+        "dailyNetProfit": "Daily Net Profit",
+        "dailyProfitPercent": "Daily Profit %",
         "result": "Result"
       },
       "empty": {

@@ -1,6 +1,30 @@
 import * as XLSX from 'xlsx';
 import { CreateTradeDto } from '../../core/models/trade.model';
 
+export const TRADE_IMPORT_TEMPLATE_HEADERS = [
+  'Type',
+  'Position',
+  'Token name',
+  'Leverage',
+  'Volume',
+  'Buy Price [USDT]',
+  'Sell Price [USDT]',
+  'Cost [USDT]',
+  'Close Date',
+] as const;
+
+export const TRADE_IMPORT_TEMPLATE_SAMPLE_ROW = [
+  'SCALP',
+  'SHORT',
+  'DOT',
+  10,
+  47.8,
+  2.092,
+  2.079,
+  0.06,
+  '2026.01.09',
+] as const;
+
 const HEADER_MAP: Record<string, keyof ParsedTradeRow> = {
   type: 'type',
   tradetype: 'type',
@@ -175,4 +199,14 @@ export async function readTradeWorkbook(file: File): Promise<CreateTradeDto[]> {
   }
 
   return rows.map((row, index) => mapImportedTradeRow(row, index + 2));
+}
+
+export function downloadTradeImportTemplate(fileName: string = 'crypto-tracker-import-template.xlsx'): void {
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    [...TRADE_IMPORT_TEMPLATE_HEADERS],
+    [...TRADE_IMPORT_TEMPLATE_SAMPLE_ROW],
+  ]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Trades');
+  XLSX.writeFile(workbook, fileName);
 }
