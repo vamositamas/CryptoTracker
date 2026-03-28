@@ -1,19 +1,21 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardApiService } from './dashboard-api.service';
 import { DashboardOverview, KpiData, MonthlyData } from './dashboard.model';
 import { KpiCardComponent } from './kpi-card/kpi-card.component';
 import { MonthlyTableComponent } from './monthly-table/monthly-table.component';
+import { MonthlyChartComponent } from './monthly-chart/monthly-chart.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, KpiCardComponent, MonthlyTableComponent],
+  imports: [RouterLink, TranslatePipe, KpiCardComponent, MonthlyTableComponent, MonthlyChartComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
   private readonly api = inject(DashboardApiService);
+  private readonly host = inject(ElementRef<HTMLElement>, { optional: true });
 
   private readonly weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -26,6 +28,7 @@ export class DashboardComponent implements OnInit {
   readonly monthly = signal<MonthlyData[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly yearDropdownOpen = signal(false);
 
   readonly split = computed(() => this.overview()?.split ?? {
     winTrades: 0,
@@ -34,7 +37,7 @@ export class DashboardComponent implements OnInit {
     longTrades: 0,
   });
 
-  readonly tokenStats = computed(() => this.overview()?.tokenStats ?? []);
+  readonly tokenStats = computed(() => (this.overview()?.tokenStats ?? []).slice(0, 5));
   readonly weekdayStats = computed(() => {
     const rows = this.overview()?.weekdayStats ?? [];
     return [...rows].sort((a, b) => this.weekdayOrder.indexOf(a.weekday) - this.weekdayOrder.indexOf(b.weekday));
@@ -169,6 +172,24 @@ export class DashboardComponent implements OnInit {
   tokenBarWidth(netProfit: number): string {
     const max = Math.max(...this.tokenStats().map((row) => Math.abs(row.netProfit)), 1);
     return `${Math.max((Math.abs(netProfit) / max) * 100, 4)}%`;
+  }
+
+  toggleYearDropdown(event: Event): void {
+    event.stopPropagation();
+    if (this.availableYears().length === 0 || this.loading()) return;
+    this.yearDropdownOpen.update(v => !v);
+  }
+
+  selectYear(year: number): void {
+    this.yearDropdownOpen.set(false);
+    this.onYearChange(String(year));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.host && !this.host.nativeElement.contains(event.target as Node)) {
+      this.yearDropdownOpen.set(false);
+    }
   }
 
   private async loadOverview(): Promise<void> {

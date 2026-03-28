@@ -1,16 +1,22 @@
 import { Routes } from '@angular/router';
-import { traderGuard } from './core/guards/trader.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'select-trader',
-    title: 'routeTitles.selectTrader',
+    path: 'login',
+    title: 'routeTitles.login',
     loadComponent: () =>
-      import('./features/user-selector/user-selector.component').then(m => m.UserSelectorComponent),
+      import('./features/auth/login/login.component').then(m => m.LoginComponent),
+  },
+  {
+    path: 'register',
+    title: 'routeTitles.register',
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then(m => m.RegisterComponent),
   },
   {
     path: '',
-    canActivate: [traderGuard],
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./core/shell/app-shell.component').then(m => m.AppShellComponent),
     children: [
@@ -45,7 +51,32 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/formulas/formulas.component').then(m => m.FormulasComponent),
       },
+      {
+        path: 'admin',
+        children: [
+          {
+            path: 'users',
+            title: 'routeTitles.adminUsers',
+            loadComponent: () =>
+              import('./features/admin/users/users-admin.component').then(m => m.UsersAdminComponent),
+          },
+          {
+            path: 'groups',
+            title: 'routeTitles.adminGroups',
+            loadComponent: () =>
+              import('./features/admin/groups/groups-admin.component').then(m => m.GroupsAdminComponent),
+          },
+          {
+            path: 'roles',
+            title: 'routeTitles.adminRoles',
+            loadComponent: () =>
+              import('./features/admin/roles/roles-admin.component').then(m => m.RolesAdminComponent),
+          },
+        ],
+      },
     ],
   },
+  { path: '**', redirectTo: '' },
 ];
+
 

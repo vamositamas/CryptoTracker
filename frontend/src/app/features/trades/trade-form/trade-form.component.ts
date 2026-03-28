@@ -27,11 +27,12 @@ export class TradeFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly tradeService = inject(TradeService);
   private readonly masterDataApi = inject(MasterDataApiService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly saved = output<void>();
   readonly cancelled = output<void>();
 
-  @ViewChild('firstField') firstFieldRef!: ElementRef<HTMLSelectElement>;
+  @ViewChild('firstField') firstFieldRef!: ElementRef<HTMLButtonElement>;
 
   readonly tokens = signal<string[]>([]);
   readonly positions = signal<string[]>([]);
@@ -39,6 +40,7 @@ export class TradeFormComponent implements OnInit {
   readonly submitting = signal<boolean>(false);
   readonly submitError = signal<string | null>(null);
   readonly liveAnnouncementKey = signal<string | null>(null);
+  readonly formOpenDropdown = signal<null | 'token' | 'tradePosition' | 'type'>(null);
 
   readonly form = this.fb.group({
     token: ['', Validators.required],
@@ -143,6 +145,28 @@ export class TradeFormComponent implements OnInit {
     this.liveAnnouncementKey.set(null);
     this.form.reset({ leverage: 1, brokerCost: 0 });
     this.cancelled.emit();
+  }
+
+  toggleFormDropdown(field: 'token' | 'tradePosition' | 'type', event: Event): void {
+    event.stopPropagation();
+    this.formOpenDropdown.update(current => current === field ? null : field);
+  }
+
+  isFormDropdownOpen(field: string): boolean {
+    return this.formOpenDropdown() === field;
+  }
+
+  selectFormField(field: 'token' | 'tradePosition' | 'type', value: string): void {
+    this.form.controls[field].setValue(value);
+    this.form.controls[field].markAsTouched();
+    this.formOpenDropdown.set(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onFormDocumentClick(event: MouseEvent): void {
+    if (!this.host.nativeElement.contains(event.target as Node)) {
+      this.formOpenDropdown.set(null);
+    }
   }
 
   @HostListener('window:keydown.escape', ['$event'])

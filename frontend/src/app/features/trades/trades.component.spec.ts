@@ -72,14 +72,14 @@ describe('TradesComponent', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('filters by token (exact match)', async () => {
+  it('filters by a single selected token', async () => {
     const fixture = TestBed.createComponent(TradesComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'BTC',
+      positions: ['BTC'],
       tradePosition: '',
       type: '',
       result: '',
@@ -98,7 +98,7 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: '',
+      positions: [],
       tradePosition: '',
       type: 'spot',
       result: '',
@@ -117,7 +117,7 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: '',
+      positions: [],
       tradePosition: '',
       type: '',
       result: '',
@@ -129,14 +129,14 @@ describe('TradesComponent', () => {
     expect(fixture.componentInstance.filteredTrades().map((t) => t.id)).toEqual(['a', 'b']);
   });
 
-  it('combines multiple filters with AND logic', async () => {
+  it('combines multi-select token and other filters with AND logic', async () => {
     const fixture = TestBed.createComponent(TradesComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'ETH',
+      positions: ['BTC', 'ETH'],
       tradePosition: '',
       type: 'futures',
       result: '',
@@ -155,7 +155,7 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B]);
     fixture.componentInstance.onFilterChange({
-      position: 'XRP',
+      positions: ['XRP'],
       tradePosition: '',
       type: '',
       result: '',
@@ -175,7 +175,7 @@ describe('TradesComponent', () => {
 
     tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
     fixture.componentInstance.onFilterChange({
-      position: 'BTC',
+      positions: ['BTC'],
       tradePosition: '',
       type: '',
       result: '',
@@ -191,5 +191,24 @@ describe('TradesComponent', () => {
 
     expect(fixture.componentInstance.filteredTrades().map((t) => t.id)).toEqual(['a', 'b', 'c']);
     expect(fixture.componentInstance.hasActiveFilters()).toBe(false);
+  });
+
+  it('filters by multiple selected tokens', async () => {
+    const fixture = TestBed.createComponent(TradesComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    tradesSignal.set([TRADE_A, TRADE_B, TRADE_C]);
+    fixture.componentInstance.onFilterChange({
+      positions: ['BTC', 'SOL'],
+      tradePosition: '',
+      type: '',
+      result: '',
+      dateFrom: '',
+      dateTo: '',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.filteredTrades().map((t) => t.id)).toEqual(['a', 'c']);
   });
 });

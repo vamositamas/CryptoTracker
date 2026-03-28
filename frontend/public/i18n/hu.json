@@ -3,7 +3,9 @@
     "save": "Mentés",
     "cancel": "Mégse",
     "delete": "Törlés",
+    "edit": "Szerkesztés",
     "confirm": "Biztos benne?",
+    "loading": "Betöltés...",
     "dash": "-"
   },
   "shell": {
@@ -16,12 +18,17 @@
       "hu": "HU"
     },
     "switchTrader": "Kereskedő váltása",
+    "logout": "Kijelentkezés",
     "nav": {
       "dashboard": "Irányítópult",
       "trades": "Kötések",
       "audit": "Auditnapló",
       "masterData": "Törzsadatok",
-      "formulas": "Képletek"
+      "formulas": "Képletek",
+      "admin": "Adminisztráció",
+      "adminUsers": "Felhasználók",
+      "adminGroups": "Csoportok",
+      "adminRoles": "Szerepkörök"
     }
   },
   "dashboard": {
@@ -73,6 +80,7 @@
         "token": "Token",
         "trades": "Kötések",
         "profit": "Nettó profit",
+        "profitPct": "Nettó profit %",
         "winRate": "Találati arány"
       }
     },
@@ -87,8 +95,14 @@
         "month": "Hónap",
         "trades": "Kötések",
         "netProfit": "Nettó profit",
+        "profitPct": "Profit %",
+        "avgDailyProfitPct": "Napi profit %",
+        "deltaPct": "Havi delta %",
         "winRate": "Találati arány"
       }
+    },
+    "monthlyChart": {
+      "title": "Havi teljesítmény diagram"
     }
   },
   "trades": {
@@ -254,12 +268,16 @@
     }
   },
   "routeTitles": {
-    "selectTrader": "Profil kiválasztása",
+    "login": "Bejelentkezés",
+    "register": "Fiók létrehozása",
     "dashboard": "Irányítópult",
     "trades": "Kötések",
     "audit": "Auditnapló",
     "masterData": "Törzsadatok",
-    "formulas": "Képletek"
+    "formulas": "Képletek",
+    "adminUsers": "Felhasználók — Admin",
+    "adminGroups": "Csoportok — Admin",
+    "adminRoles": "Szerepkörök — Admin"
   },
   "formulas": {
     "title": "Számítási képletek",
@@ -395,6 +413,69 @@
     "empty": "Nem található profil. Forduljon a rendszergazdához.",
     "errors": {
       "loadFailed": "Nem sikerült betölteni a kereskedő profilokat. Frissítse az oldalt."
+    }  },
+  "auth": {
+    "fields": {
+      "email": "E-mail",
+      "password": "Jelszó",
+      "username": "Felhasználónév"
+    },
+    "login": {
+      "title": "Bejelentkezés",
+      "submit": "Bejelentkezés",
+      "loading": "Bejelentkezés folyamatban...",
+      "noAccount": "Nincs még fiókja?",
+      "register": "Regisztráció"
+    },
+    "register": {
+      "title": "Fiók létrehozása",
+      "submit": "Fiók létrehozása",
+      "loading": "Fiók létrehozása...",
+      "usernameHint": "Egyeznie kell a kereskedői adatmappa nevével",
+      "passwordHint": "Legalább 8 karakter",
+      "hasAccount": "Már van fiókja?",
+      "login": "Bejelentkezés"
+    },
+    "errors": {
+      "loginFailed": "Érvénytelen e-mail vagy jelszó",
+      "registerFailed": "A regisztráció nem sikerült. Kérjük, próbálja újra."
     }
-  }
+  },
+  "admin": {
+    "errors": {
+      "loadFailed": "Nem sikerült betölteni az adatokat.",
+      "saveFailed": "Mentés sikertelen."
+    },
+    "users": {
+      "title": "Felhasználók",
+      "addUser": "Felhasználó hozzáadása",
+      "editUser": "Felhasználó szerkesztése",
+      "email": "E-mail",
+      "username": "Felhasználónév",
+      "group": "Csoport",
+      "status": "Állapot",
+      "active": "Aktív",
+      "inactive": "Inaktív",
+      "newPassword": "Új jelszó (hagyja üresen a változatlanhoz)",
+      "empty": "Nincs még felhasználó."
+    },
+    "groups": {
+      "title": "Csoportok",
+      "addGroup": "Csoport hozzáadása",
+      "editGroup": "Csoport szerkesztése",
+      "name": "Név",
+      "roles": "Szerepkörök",
+      "noRoles": "Nincs még szerepkör.",
+      "empty": "Nincs még csoport."
+    },
+    "roles": {
+      "title": "Szerepkörök",
+      "addRole": "Szerepkör hozzáadása",
+      "editRole": "Szerepkör szerkesztése",
+      "name": "Név",
+      "permissions": "Jogosultságok",
+      "permissionsHint": "Jogosultságok (vesszővel elválasztva, pl. users:manage)",
+      "permissionsAvailable": "Elérhető: users:manage · trades:read · trades:write · trades:delete · audit:read · dashboard:read · master-data:manage · formulas:manage",
+      "empty": "Nincs még szerepkör."
+    }  }
 }

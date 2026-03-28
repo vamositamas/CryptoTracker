@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
+vi.mock('../middleware/auth.middleware', () => ({
+  authMiddleware: vi.fn((req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    (req as unknown as Record<string, unknown>)['user'] = { id: 'u1', email: 't@t.com', username: 'tamas', groupId: 'superadmin-group', permissions: ['users:manage', 'trades:read', 'trades:write', 'trades:delete', 'audit:read', 'dashboard:read', 'master-data:manage', 'formulas:manage'] };
+    next();
+  }),
+}));
+
 vi.mock('../services/formula.service', () => ({
   REQUIRED_EDITABLE_FORMULA_FIELDS: [
     'investment',

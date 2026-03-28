@@ -54,9 +54,9 @@ export interface TradeImportResponse {
   trades: EnrichedTrade[];
 }
 
-/** Active filter values for the trade list. Empty string means "no filter on this field". */
+/** Active filter values for the trade list. Empty/[] means "no filter on this field". */
 export interface FilterState {
-  position: string;
+  positions: string[]; // Multi-select tokens
   tradePosition: string;
   type: string;
   result: string;

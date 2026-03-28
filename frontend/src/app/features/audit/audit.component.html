@@ -6,17 +6,40 @@
     <!-- Action type -->
     <div class="flex flex-col gap-1">
       <label for="filter-action" class="text-xs font-medium text-gray-600">{{ 'audit.filters.action' | translate }}</label>
-      <select
+      <button
+        type="button"
         id="filter-action"
-        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        [value]="filterState().action"
-        (change)="onFilterChange({ action: $any($event.target).value })"
+        (click)="toggleActionDropdown()"
+        [attr.aria-expanded]="actionDropdownOpen()"
+        aria-haspopup="listbox"
+        class="relative border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm text-left text-gray-700 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
-        <option value="">{{ 'audit.filters.allActions' | translate }}</option>
-        <option value="CREATE">{{ 'audit.actions.create' | translate }}</option>
-        <option value="UPDATE">{{ 'audit.actions.update' | translate }}</option>
-        <option value="DELETE">{{ 'audit.actions.delete' | translate }}</option>
-      </select>
+        {{ actionLabel() | translate }}
+        <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      @if (actionDropdownOpen()) {
+        <div class="absolute z-20 mt-14 w-44 rounded-lg border border-gray-200 bg-white shadow-lg">
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50" (click)="selectAction('')">
+            @if (!filterState().action) { <span class="mr-2">✓</span> }
+            {{ 'audit.filters.allActions' | translate }}
+          </button>
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50" (click)="selectAction('CREATE')">
+            @if (filterState().action === 'CREATE') { <span class="mr-2">✓</span> }
+            {{ 'audit.actions.create' | translate }}
+          </button>
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50" (click)="selectAction('UPDATE')">
+            @if (filterState().action === 'UPDATE') { <span class="mr-2">✓</span> }
+            {{ 'audit.actions.update' | translate }}
+          </button>
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50" (click)="selectAction('DELETE')">
+            @if (filterState().action === 'DELETE') { <span class="mr-2">✓</span> }
+            {{ 'audit.actions.delete' | translate }}
+          </button>
+        </div>
+      }
     </div>
 
     <!-- Date from -->

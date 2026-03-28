@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
 import { storageService } from '../services/storage.service';
 
 const router = Router();
+router.use(authMiddleware);
+router.use(requirePermission('master-data:manage'));
 
 interface MasterDataEntry {
   id: string;

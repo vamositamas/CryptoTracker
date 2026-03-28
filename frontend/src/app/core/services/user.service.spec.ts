@@ -1,46 +1,35 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { UserService } from './user.service';
+import { AuthService } from './auth.service';
 
 describe('UserService', () => {
-  let localStorageMock: Record<string, string>;
+  const mockUser = signal<{ username: string } | null>(null);
 
   beforeEach(() => {
-    localStorageMock = {};
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => localStorageMock[key] ?? null);
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { localStorageMock[key] = value; });
-    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => { delete localStorageMock[key]; });
-
-    TestBed.configureTestingModule({});
+    mockUser.set(null);
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: AuthService,
+          useValue: { currentUser: mockUser.asReadonly() },
+        },
+      ],
+    });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  afterEach(() => vi.restoreAllMocks());
+
+  it('activeTrader returns null when no user is logged in', () => {
+    const service = TestBed.inject(UserService);
+    expect(service.activeTrader()).toBeNull();
   });
 
-  it('initialises activeTrader from localStorage', () => {
-    localStorageMock['activeTrader'] = 'tamas';
+  it('activeTrader returns username when user is logged in', () => {
+    mockUser.set({ username: 'tamas' } as never);
     const service = TestBed.inject(UserService);
     expect(service.activeTrader()).toBe('tamas');
   });
-
-  it('initialises activeTrader as null when localStorage is empty', () => {
-    const service = TestBed.inject(UserService);
-    expect(service.activeTrader()).toBeNull();
-  });
-
-  it('selectTrader writes to localStorage and updates signal', () => {
-    const service = TestBed.inject(UserService);
-    service.selectTrader('mark');
-    expect(localStorage.setItem).toHaveBeenCalledWith('activeTrader', 'mark');
-    expect(service.activeTrader()).toBe('mark');
-  });
-
-  it('clearTrader removes from localStorage and sets signal to null', () => {
-    localStorageMock['activeTrader'] = 'tamas';
-    const service = TestBed.inject(UserService);
-    service.clearTrader();
-    expect(localStorage.removeItem).toHaveBeenCalledWith('activeTrader');
-    expect(service.activeTrader()).toBeNull();
-  });
 });
+

@@ -1,0 +1,107 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">{{ 'admin.users.title' | translate }}</h1>
+    <button
+      type="button"
+      (click)="openCreate()"
+      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+    >{{ 'admin.users.addUser' | translate }}</button>
+  </div>
+
+  @if (loading()) {
+    <p class="text-gray-500 text-sm">{{ 'common.loading' | translate }}</p>
+  } @else if (error()) {
+    <p class="text-red-500 text-sm">{{ error() }}</p>
+  } @else {
+    <div class="overflow-x-auto rounded-lg border border-gray-200">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+          <tr>
+            <th class="px-4 py-3">{{ 'admin.users.email' | translate }}</th>
+            <th class="px-4 py-3">{{ 'admin.users.username' | translate }}</th>
+            <th class="px-4 py-3">{{ 'admin.users.group' | translate }}</th>
+            <th class="px-4 py-3">{{ 'admin.users.status' | translate }}</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (user of users(); track user.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3 text-gray-900">{{ user.email }}</td>
+              <td class="px-4 py-3 text-gray-700 font-mono text-xs">{{ user.username }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ groupName(user.groupId) }}</td>
+              <td class="px-4 py-3">
+                <span [class]="user.active ? 'text-green-600' : 'text-gray-400'">
+                  {{ user.active ? ('admin.users.active' | translate) : ('admin.users.inactive' | translate) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 flex gap-2 justify-end">
+                <button type="button" (click)="openEdit(user)" class="text-blue-600 hover:underline text-xs">{{ 'common.edit' | translate }}</button>
+                <button type="button" (click)="delete(user.id)" class="text-red-500 hover:underline text-xs">{{ 'common.delete' | translate }}</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{{ 'admin.users.empty' | translate }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Create / Edit modal -->
+  @if (showForm) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+          {{ (editingId ? 'admin.users.editUser' : 'admin.users.addUser') | translate }}
+        </h2>
+
+        @if (formError) {
+          <div class="mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm">{{ formError }}</div>
+        }
+
+        <form (ngSubmit)="save()" #form="ngForm" class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{{ 'admin.users.email' | translate }}</label>
+            <input type="email" [(ngModel)]="formEmail" name="email" required [disabled]="!!editingId"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-50" />
+          </div>
+          @if (!editingId) {
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">{{ 'admin.users.username' | translate }}</label>
+              <input type="text" [(ngModel)]="formUsername" name="username" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            </div>
+          }
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">
+              {{ editingId ? ('admin.users.newPassword' | translate) : ('auth.fields.password' | translate) }}
+            </label>
+            <input type="password" [(ngModel)]="formPassword" name="password" [required]="!editingId" minlength="8"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{{ 'admin.users.group' | translate }}</label>
+            <select [(ngModel)]="formGroupId" name="groupId" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+              @for (g of groups(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="active" [(ngModel)]="formActive" name="active" class="rounded" />
+            <label for="active" class="text-sm text-gray-700">{{ 'admin.users.active' | translate }}</label>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" (click)="showForm = false" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">{{ 'common.cancel' | translate }}</button>
+            <button type="submit" [disabled]="formLoading || !form.valid"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm rounded-lg">
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,14 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { traderMiddleware } from '../middleware/trader.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
 import { storageService } from '../services/storage.service';
 import { formulaService, RawTrade, EnrichedTrade } from '../services/formula.service';
 
 const router = Router();
 
-// Apply traderMiddleware to all dashboard routes
-router.use(traderMiddleware);
-
-type TraderRequest = Request & { trader: string };
+router.use(authMiddleware);
+router.use(requirePermission('dashboard:read'));
 
 interface KpiResponse {
   totalTrades: number;
@@ -22,6 +21,8 @@ interface MonthlyRow {
   month: number;
   tradeCount: number;
   netProfit: number;
+  profitPercent: number;
+  totalDailyProfitPercent: number;
   winRate: number;
 }
 
@@ -85,8 +86,10 @@ function buildMonthlyRows(enriched: EnrichedTrade[]): MonthlyRow[] {
     const netProfit = trades.reduce((sum, t) => sum + t.nettoProfit, 0);
     const wins = trades.filter((t) => t.result === 'Win').length;
     const winRate = wins / tradeCount;
+    const profitPercent = trades.reduce((sum, t) => sum + t.profitPercent, 0);
+    const totalDailyProfitPercent = tradeCount > 0 ? profitPercent / tradeCount : 0;
 
-    rows.push({ year, month, tradeCount, netProfit, winRate });
+    rows.push({ year, month, tradeCount, netProfit, profitPercent, totalDailyProfitPercent, winRate });
   }
 
   rows.sort((a, b) => {
@@ -149,7 +152,7 @@ async function readTrades(trader: string): Promise<RawTrade[]> {
 
 // --- GET /api/v1/dashboard/kpis ---
 router.get('/kpis', async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+  const trader = req.user!.username;
 
   const rawTrades = await readTrades(trader);
   const enriched = rawTrades.map((t) => formulaService.applyAll(t));
@@ -183,7 +186,7 @@ router.get('/kpis', async (req: Request, res: Response) => {
 
 // --- GET /api/v1/dashboard/monthly ---
 router.get('/monthly', async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+  const trader = req.user!.username;
 
   const rawTrades = await readTrades(trader);
   const enriched = rawTrades.map((t) => formulaService.applyAll(t));
@@ -193,7 +196,7 @@ router.get('/monthly', async (req: Request, res: Response) => {
 
 // --- GET /api/v1/dashboard/overview ---
 router.get('/overview', async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+  const trader = req.user!.username;
   const rawTrades = await readTrades(trader);
   const enriched = rawTrades.map((trade) => formulaService.applyAll(trade));
   const requestedYear = parseYearFilter(req.query['year']);

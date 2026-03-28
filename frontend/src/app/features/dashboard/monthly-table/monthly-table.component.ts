@@ -1,16 +1,22 @@
 import { Component, Input } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MonthlyData } from '../dashboard.model';
 
 @Component({
   selector: 'app-monthly-table',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, NgClass],
   templateUrl: './monthly-table.component.html',
 })
 export class MonthlyTableComponent {
   @Input() data: MonthlyData[] = [];
   @Input() loading = false;
+
+  deltaPercent(index: number): number {
+    if (index === 0) return this.data[0]?.profitPercent ?? 0;
+    return (this.data[index]?.profitPercent ?? 0) - (this.data[index - 1]?.profitPercent ?? 0);
+  }
 
   get currentMonth(): number {
     return new Date().getMonth() + 1;

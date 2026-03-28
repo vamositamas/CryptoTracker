@@ -46,10 +46,9 @@ describe('GET /api/v1/dashboard', () => {
 });
 
 describe('GET /api/v1/master-data', () => {
-  it('is mounted and does not require trader identity', async () => {
+  it('is mounted and requires authentication', async () => {
     const res = await request(app).get('/api/v1/master-data/invalid-type');
-    expect(res.status).toBe(400);
-    expect(res.body.error.code).toBe('INVALID_MASTER_DATA_TYPE');
+    expect(res.status).toBe(401);
   });
 });
 

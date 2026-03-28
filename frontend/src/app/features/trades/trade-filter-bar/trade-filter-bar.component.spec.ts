@@ -23,7 +23,7 @@ describe('TradeFilterBarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector('#filter-position')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#filter-positions')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-trade-position')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-type')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#filter-result')).not.toBeNull();
@@ -38,17 +38,39 @@ describe('TradeFilterBarComponent', () => {
 
     const emitSpy = vi.spyOn(fixture.componentInstance.filterChange, 'emit');
 
-    fixture.componentInstance.form.patchValue({ position: 'BTC' });
+    fixture.componentInstance.form.patchValue({ positions: ['BTC'] });
     vi.advanceTimersByTime(151);
 
     expect(emitSpy).toHaveBeenCalledWith({
-      position: 'BTC',
+      positions: ['BTC'],
       tradePosition: '',
       type: '',
       result: '',
       dateFrom: '',
       dateTo: '',
     });
+  });
+
+  it('opens token dropdown and toggles checkbox selection', async () => {
+    const fixture = TestBed.createComponent(TradeFilterBarComponent);
+    fixture.componentRef.setInput('tokens', ['BTC', 'ETH']);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const trigger = fixture.nativeElement.querySelector('#filter-positions') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const checkboxes = Array.from(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]'),
+    ) as HTMLInputElement[];
+    expect(checkboxes.length).toBe(2);
+
+    checkboxes[0].checked = true;
+    checkboxes[0].dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.positions.value).toEqual(['BTC']);
   });
 
   it('clear button resets all fields and emits empty filter state', async () => {
@@ -59,7 +81,7 @@ describe('TradeFilterBarComponent', () => {
     const emitSpy = vi.spyOn(fixture.componentInstance.filterChange, 'emit');
 
     fixture.componentInstance.form.patchValue({
-      position: 'BTC',
+      positions: ['BTC'],
       tradePosition: 'Long',
       type: 'spot',
       result: 'Win',
@@ -72,7 +94,7 @@ describe('TradeFilterBarComponent', () => {
     vi.advanceTimersByTime(151);
 
     expect(fixture.componentInstance.form.value).toEqual({
-      position: '',
+      positions: [],
       tradePosition: '',
       type: '',
       result: '',
@@ -80,7 +102,7 @@ describe('TradeFilterBarComponent', () => {
       dateTo: '',
     });
     expect(emitSpy).toHaveBeenLastCalledWith({
-      position: '',
+      positions: [],
       tradePosition: '',
       type: '',
       result: '',
@@ -95,7 +117,7 @@ describe('TradeFilterBarComponent', () => {
     await fixture.whenStable();
 
     fixture.componentRef.setInput('value', {
-      position: 'BTC',
+      positions: ['BTC', 'ETH'],
       tradePosition: 'Long',
       type: 'Scalp',
       result: 'Win',
@@ -105,7 +127,7 @@ describe('TradeFilterBarComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.value).toEqual({
-      position: 'BTC',
+      positions: ['BTC', 'ETH'],
       tradePosition: 'Long',
       type: 'Scalp',
       result: 'Win',
@@ -114,7 +136,7 @@ describe('TradeFilterBarComponent', () => {
     });
 
     fixture.componentRef.setInput('value', {
-      position: '',
+      positions: [],
       tradePosition: '',
       type: '',
       result: '',
@@ -124,7 +146,7 @@ describe('TradeFilterBarComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.value).toEqual({
-      position: '',
+      positions: [],
       tradePosition: '',
       type: '',
       result: '',

@@ -1,4 +1,6 @@
 import { Request, Response, Router } from 'express';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
 import {
   EditableFormulaInput,
   FormulaDefinition,
@@ -7,6 +9,8 @@ import {
 } from '../services/formula.service';
 
 const router = Router();
+router.use(authMiddleware);
+router.use(requirePermission('formulas:manage'));
 
 interface FormulaRequestBody {
   formulas?: EditableFormulaInput[];

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TradeWithMeta } from '../trade.service';
@@ -36,6 +36,7 @@ interface DailyAggregateCell {
 })
 export class TradeTableComponent implements OnInit {
   private readonly masterDataApi = inject(MasterDataApiService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly trades = input<TradeWithMeta[]>([]);
   readonly loading = input<boolean>(false);
@@ -67,6 +68,7 @@ export class TradeTableComponent implements OnInit {
     closeDate: '',
   });
   readonly fieldErrors = signal<Partial<Record<keyof CreateTradeDto, string>>>({});
+  readonly editDropdownOpen = signal<null | 'token' | 'tradePosition' | 'type'>(null);
   readonly tokens = signal<string[]>([]);
   readonly positions = signal<string[]>([]);
   readonly tradeTypes = signal<string[]>([]);
@@ -188,6 +190,7 @@ export class TradeTableComponent implements OnInit {
   startEdit(trade: TradeWithMeta): void {
     this.editingId.set(trade.id);
     this.fieldErrors.set({});
+    this.editDropdownOpen.set(null);
     this.draft.set({
       token: trade.position,
       type: trade.type,
@@ -224,6 +227,7 @@ export class TradeTableComponent implements OnInit {
     this.editingId.set(null);
     this.fieldErrors.set({});
     this.savingEdit.set(false);
+    this.editDropdownOpen.set(null);
   }
 
   openDeleteConfirm(tradeId: string, event?: Event): void {
@@ -275,6 +279,22 @@ export class TradeTableComponent implements OnInit {
         this.savingEdit.set(false);
       },
     });
+  }
+
+  toggleEditDropdown(field: 'token' | 'tradePosition' | 'type', event: Event): void {
+    event.stopPropagation();
+    this.editDropdownOpen.update(current => current === field ? null : field);
+  }
+
+  selectEditField(field: 'token' | 'tradePosition' | 'type', value: string, event: Event): void {
+    event.stopPropagation();
+    if (field === 'token') {
+      this.setDraftField('token', value);
+      this.setDraftField('position', value);
+    } else {
+      this.setDraftField(field as 'tradePosition' | 'type', value);
+    }
+    this.editDropdownOpen.set(null);
   }
 
   onEditKeydown(event: KeyboardEvent): void {

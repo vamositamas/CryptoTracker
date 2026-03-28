@@ -25,7 +25,7 @@ export class TradesComponent implements OnInit {
   readonly importError = signal<string | null>(null);
   readonly importing = signal(false);
   readonly filterState = signal<FilterState>({
-    position: '',
+    positions: [],
     tradePosition: '',
     type: '',
     result: '',
@@ -45,7 +45,7 @@ export class TradesComponent implements OnInit {
 
   readonly activeKpi = computed<'all' | 'wins' | 'losses' | 'today' | null>(() => {
     const f = this.filterState();
-    const noDropdownFilters = !f.position && !f.tradePosition && !f.type;
+    const noDropdownFilters = f.positions.length === 0 && !f.tradePosition && !f.type;
     if (!noDropdownFilters) return null;
     if (!f.result && !f.dateFrom && !f.dateTo) return 'all';
     if (f.result === 'Win' && !f.dateFrom && !f.dateTo) return 'wins';
@@ -68,13 +68,13 @@ export class TradesComponent implements OnInit {
 
   readonly hasActiveFilters = computed(() => {
     const f = this.filterState();
-    return !!(f.position || f.tradePosition || f.type || f.result || f.dateFrom || f.dateTo);
+    return !!(f.positions.length > 0 || f.tradePosition || f.type || f.result || f.dateFrom || f.dateTo);
   });
 
   readonly filteredTrades = computed(() => {
     const list = this.trades();
     const f = this.filterState();
-    const positionFilter = f.position;
+    const positionFilters = f.positions; // Array of selected tokens
     const tradePositionFilter = f.tradePosition;
     const typeNeedle = f.type.trim().toLowerCase();
     const resultFilter = f.result;
@@ -82,7 +82,8 @@ export class TradesComponent implements OnInit {
     const dateTo = f.dateTo;
 
     return list.filter((trade) => {
-      if (positionFilter && trade.position !== positionFilter) {
+      // Multi-select: if positions is non-empty, trade must match at least one
+      if (positionFilters.length > 0 && !positionFilters.includes(trade.position)) {
         return false;
       }
       if (tradePositionFilter && trade.tradePosition !== tradePositionFilter) {
@@ -125,7 +126,7 @@ export class TradesComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    this.filterState.set({ position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' });
+    this.filterState.set({ positions: [], tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' });
   }
 
   onKpiClick(kpi: 'all' | 'wins' | 'losses' | 'today'): void {
@@ -133,7 +134,7 @@ export class TradesComponent implements OnInit {
       this.onClearFilters();
       return;
     }
-    const base: FilterState = { position: '', tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' };
+    const base: FilterState = { positions: [], tradePosition: '', type: '', result: '', dateFrom: '', dateTo: '' };
     switch (kpi) {
       case 'all':
         this.filterState.set(base);

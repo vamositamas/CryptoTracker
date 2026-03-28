@@ -23,6 +23,29 @@ const DEFAULT_POSITIONS = [
   { id: 'short', name: 'Short' },
 ];
 
+const DEFAULT_USERS: unknown[] = [];
+
+const DEFAULT_GROUPS = [
+  { id: 'superadmin-group', name: 'Superadmin', roleIds: ['superadmin-role'] },
+];
+
+const DEFAULT_ROLES = [
+  {
+    id: 'superadmin-role',
+    name: 'Superadmin',
+    permissions: [
+      'users:manage',
+      'trades:read',
+      'trades:write',
+      'trades:delete',
+      'audit:read',
+      'dashboard:read',
+      'master-data:manage',
+      'formulas:manage',
+    ],
+  },
+];
+
 const DEFAULT_TRADERS = ['tamas', 'mark'];
 
 const DEFAULT_FORMULAS = [
@@ -31,9 +54,9 @@ const DEFAULT_FORMULAS = [
   { field: 'sellValue',         expression: 'volume * sellPrice',                                                 variables: ['volume', 'sellPrice'] },
   { field: 'cost',              expression: 'volume * buyPrice / leverage',                                       variables: ['volume', 'buyPrice', 'leverage'] },
   { field: 'nettoProfit',       expression: '(sellPrice - buyPrice) * volume * positionMultiplier - brokerCost',                     variables: ['sellPrice', 'buyPrice', 'volume', 'positionMultiplier', 'brokerCost'] },
-  { field: 'profitPercent',     expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 * positionMultiplier',                variables: ['sellPrice', 'buyPrice', 'leverage', 'positionMultiplier'] },
+  { field: 'profitPercent',     expression: 'nettoProfit / investment * 100',                                                       variables: ['nettoProfit', 'investment'] },
   { field: 'profitRealPercent', expression: '(sellPrice - buyPrice) / buyPrice * 100 * positionMultiplier',                           variables: ['sellPrice', 'buyPrice', 'positionMultiplier'] },
-  { field: 'dailyProfitPercent', expression: '(sellPrice - buyPrice) / buyPrice * leverage * 100 / holdingDays * positionMultiplier', variables: ['sellPrice', 'buyPrice', 'leverage', 'holdingDays', 'positionMultiplier'] },
+  { field: 'dailyProfitPercent', expression: 'profitPercent / holdingDays',                                                          variables: ['profitPercent', 'holdingDays'] },
   // result ('Win'/'Loss') is a string — not evaluable by expr-eval; handled in FormulaService.applyAll
   { field: 'result',            expression: 'nettoProfit',                                                        variables: ['nettoProfit'] },
 ];
@@ -55,6 +78,9 @@ export async function initSeedData(dataDir: string): Promise<void> {
   const shared = path.join(dataDir, 'shared');
   const config = path.join(dataDir, 'config');
   const seeds: Array<[string, unknown]> = [
+    [path.join(shared, 'users.json'), DEFAULT_USERS],
+    [path.join(shared, 'groups.json'), DEFAULT_GROUPS],
+    [path.join(shared, 'roles.json'), DEFAULT_ROLES],
     [path.join(shared, 'tokens.json'), DEFAULT_TOKENS],
     [path.join(shared, 'trade-types.json'), DEFAULT_TRADE_TYPES],
     [path.join(shared, 'positions.json'), DEFAULT_POSITIONS],

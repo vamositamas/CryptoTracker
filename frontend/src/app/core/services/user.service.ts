@@ -1,18 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  readonly activeTrader = signal<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('activeTrader') : null,
-  );
+  private readonly authService = inject(AuthService);
 
-  selectTrader(username: string): void {
-    localStorage.setItem('activeTrader', username);
-    this.activeTrader.set(username);
-  }
-
-  clearTrader(): void {
-    localStorage.removeItem('activeTrader');
-    this.activeTrader.set(null);
-  }
+  readonly activeTrader = computed(() => this.authService.currentUser()?.username ?? null);
 }
+

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { traderMiddleware } from '../middleware/trader.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
 import { auditMiddleware } from '../middleware/audit.middleware';
 import { storageService } from '../services/storage.service';
 import { formulaService, stripCalculatedFields, RawTrade } from '../services/formula.service';
@@ -9,10 +10,7 @@ import * as path from 'path';
 
 const router = Router();
 
-// Apply traderMiddleware to all trade routes
-router.use(traderMiddleware);
-
-type TraderRequest = Request & { trader: string };
+router.use(authMiddleware);
 
 interface TradeImportBody {
   trades?: unknown;
@@ -110,8 +108,8 @@ async function findTradeOwnerInOtherTrader(tradeId: string, currentTrader: strin
 }
 
 // --- GET /api/v1/trades ---
-router.get('/', async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+router.get('/', requirePermission('trades:read'), async (req: Request, res: Response) => {
+  const trader = req.user!.username;
 
   const rawTrades = await readTrades(trader);
   const enriched = rawTrades.map((t) => formulaService.applyAll(t));
@@ -120,8 +118,8 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // --- POST /api/v1/trades ---
-router.post('/', auditMiddleware, async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+router.post('/', requirePermission('trades:write'), auditMiddleware, async (req: Request, res: Response) => {
+  const trader = req.user!.username;
 
   // Strip any calculated fields the client may have sent
   const body = stripCalculatedFields(req.body as Record<string, unknown>);
@@ -153,8 +151,8 @@ router.post('/', auditMiddleware, async (req: Request, res: Response) => {
 });
 
 // --- POST /api/v1/trades/import ---
-router.post('/import', async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+router.post('/import', requirePermission('trades:write'), async (req: Request, res: Response) => {
+  const trader = req.user!.username;
   const trades = (req.body as TradeImportBody | undefined)?.trades;
 
   if (!Array.isArray(trades) || trades.length === 0) {
@@ -193,8 +191,8 @@ router.post('/import', async (req: Request, res: Response) => {
 });
 
 // --- PUT /api/v1/trades/:id ---
-router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+router.put('/:id', requirePermission('trades:write'), auditMiddleware, async (req: Request, res: Response) => {
+  const trader = req.user!.username;
   const tradeId = Array.isArray(req.params['id']) ? req.params['id'][0] : req.params['id'];
 
   if (!tradeId) {
@@ -259,8 +257,8 @@ router.put('/:id', auditMiddleware, async (req: Request, res: Response) => {
 });
 
 // --- DELETE /api/v1/trades/:id ---
-router.delete('/:id', auditMiddleware, async (req: Request, res: Response) => {
-  const { trader } = req as TraderRequest;
+router.delete('/:id', requirePermission('trades:delete'), auditMiddleware, async (req: Request, res: Response) => {
+  const trader = req.user!.username;
   const tradeId = Array.isArray(req.params['id']) ? req.params['id'][0] : req.params['id'];
 
   if (!tradeId) {

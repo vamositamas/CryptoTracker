@@ -26,6 +26,9 @@
             <th class="px-6 py-3">{{ 'dashboard.monthly.columns.month' | translate }}</th>
             <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.trades' | translate }}</th>
             <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.netProfit' | translate }}</th>
+            <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.profitPct' | translate }}</th>
+            <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.avgDailyProfitPct' | translate }}</th>
+            <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.deltaPct' | translate }}</th>
             <th class="px-6 py-3 text-right">{{ 'dashboard.monthly.columns.winRate' | translate }}</th>
           </tr>
         </thead>
@@ -37,10 +40,19 @@
             >
               <td class="px-6 py-3 text-gray-700">{{ formatMonth(row.month, row.year) }}</td>
               <td class="px-6 py-3 text-right tabular-nums text-gray-700">{{ row.tradeCount }}</td>
-              <td class="px-6 py-3 text-right tabular-nums font-medium {{ profitColorClass(row.netProfit) }}">
+              <td class="px-6 py-3 text-right tabular-nums font-medium" [ngClass]="profitColorClass(row.netProfit)">
                 {{ formatCurrency(row.netProfit) }}
               </td>
-              <td class="px-6 py-3 text-right tabular-nums {{ winRateColorClass(row.winRate) }}">
+              <td class="px-6 py-3 text-right tabular-nums" [ngClass]="profitColorClass(row.profitPercent)">
+                {{ row.profitPercent.toFixed(2) }}%
+              </td>
+              <td class="px-6 py-3 text-right tabular-nums" [ngClass]="profitColorClass(row.totalDailyProfitPercent)">
+                {{ row.totalDailyProfitPercent.toFixed(2) }}%
+              </td>
+              <td class="px-6 py-3 text-right tabular-nums font-medium" [ngClass]="profitColorClass(deltaPercent($index))">
+                {{ deltaPercent($index) >= 0 ? '+' : '' }}{{ deltaPercent($index).toFixed(2) }}%
+              </td>
+              <td class="px-6 py-3 text-right tabular-nums" [ngClass]="winRateColorClass(row.winRate)">
                 {{ formatPercent(row.winRate) }}
               </td>
             </tr>

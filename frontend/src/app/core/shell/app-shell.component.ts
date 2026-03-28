@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { UserService } from '../services/user.service';
+import { AuthService } from '../services/auth.service';
 import { LanguageToggleComponent } from './language-toggle.component';
 
 @Component({
@@ -10,11 +10,11 @@ import { LanguageToggleComponent } from './language-toggle.component';
   templateUrl: './app-shell.component.html',
 })
 export class AppShellComponent {
-  readonly userService = inject(UserService);
+  readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  switchTrader(): void {
-    this.userService.clearTrader();
-    this.router.navigate(['/select-trader']);
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

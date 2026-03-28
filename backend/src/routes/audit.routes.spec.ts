@@ -7,9 +7,9 @@ vi.mock('../services/storage.service', () => ({
   storageService: { read: vi.fn(), write: vi.fn(), appendJsonArray: vi.fn() },
 }));
 
-vi.mock('../middleware/trader.middleware', () => ({
-  traderMiddleware: vi.fn((req: express.Request, _res: express.Response, next: express.NextFunction) => {
-    (req as unknown as Record<string, unknown>)['trader'] = 'tamas';
+vi.mock('../middleware/auth.middleware', () => ({
+  authMiddleware: vi.fn((req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    (req as unknown as Record<string, unknown>)['user'] = { id: 'u1', email: 't@t.com', username: 'tamas', groupId: 'superadmin-group', permissions: ['users:manage', 'trades:read', 'trades:write', 'trades:delete', 'audit:read', 'dashboard:read', 'master-data:manage', 'formulas:manage'] };
     next();
   }),
 }));

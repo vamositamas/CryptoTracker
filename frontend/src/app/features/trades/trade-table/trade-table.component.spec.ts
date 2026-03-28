@@ -378,8 +378,8 @@ describe('TradeTableComponent', () => {
     fixture.componentInstance.startEdit(WIN_TRADE);
     fixture.detectChanges();
 
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    const input = fixture.nativeElement.querySelector('input[type="number"], input[type="date"]') as HTMLInputElement;
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
 
     expect(fixture.componentInstance.editingId()).toBeNull();
@@ -396,14 +396,14 @@ describe('TradeTableComponent', () => {
     fixture.componentInstance.startEdit(WIN_TRADE);
     fixture.detectChanges();
 
-    const selects = Array.from(
-      fixture.nativeElement.querySelectorAll('tr select') as NodeListOf<HTMLSelectElement>,
-    );
+    // Verify the component has loaded the correct options in each signal
+    expect(fixture.componentInstance.tokenOptions()).toEqual(['BTC', 'ETH', 'DOT']);
+    expect(fixture.componentInstance.positionOptions()).toEqual(['long', 'short']);
+    expect(fixture.componentInstance.typeOptions()).toEqual(['spot', 'futures']);
 
-    expect(selects.length).toBeGreaterThanOrEqual(3);
-    expect(Array.from(selects[0].options).map((option) => option.value)).toEqual(['BTC', 'ETH', 'DOT']);
-    expect(Array.from(selects[1].options).map((option) => option.value)).toEqual(['long', 'short']);
-    expect(Array.from(selects[2].options).map((option) => option.value)).toEqual(['spot', 'futures']);
+    // Verify dropdown trigger buttons are rendered in the edit row
+    const triggerButtons = fixture.nativeElement.querySelectorAll('td button') as NodeListOf<HTMLButtonElement>;
+    expect(triggerButtons.length).toBeGreaterThanOrEqual(3);
   });
 
   it('cancels edit mode on global Escape key', async () => {

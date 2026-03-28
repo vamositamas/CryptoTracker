@@ -1,0 +1,12 @@
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.monthlyChart.title' | translate }}</h2>
+  </div>
+
+  <div class="px-4 py-4" style="height: 300px; position: relative;">
+    @if (loading) {
+      <div class="absolute inset-0 m-4 bg-gray-100 rounded animate-pulse"></div>
+    }
+    <canvas #chartCanvas [style.visibility]="loading ? 'hidden' : 'visible'"></canvas>
+  </div>
+</div>

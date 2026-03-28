@@ -10,6 +10,8 @@ export interface MonthlyData {
   month: number;
   tradeCount: number;
   netProfit: number;
+  profitPercent: number;
+  totalDailyProfitPercent: number;
   winRate: number;
 }
 

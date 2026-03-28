@@ -3,7 +3,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "edit": "Edit",
     "confirm": "Are you sure?",
+    "loading": "Loading...",
     "dash": "-"
   },
   "shell": {
@@ -16,12 +18,17 @@
       "hu": "HU"
     },
     "switchTrader": "Switch trader",
+    "logout": "Log out",
     "nav": {
       "dashboard": "Dashboard",
       "trades": "Trades",
       "audit": "Audit Trail",
       "masterData": "Master Data",
-      "formulas": "Formulas"
+      "formulas": "Formulas",
+      "admin": "Administration",
+      "adminUsers": "Users",
+      "adminGroups": "Groups",
+      "adminRoles": "Roles"
     }
   },
   "dashboard": {
@@ -73,6 +80,7 @@
         "token": "Token",
         "trades": "Trades",
         "profit": "Net Profit",
+        "profitPct": "Net Profit %",
         "winRate": "Win Rate"
       }
     },
@@ -87,8 +95,14 @@
         "month": "Month",
         "trades": "Trades",
         "netProfit": "Net Profit",
+        "profitPct": "Profit %",
+        "avgDailyProfitPct": "Daily Profit %",
+        "deltaPct": "Monthly Delta %",
         "winRate": "Win Rate"
       }
+    },
+    "monthlyChart": {
+      "title": "Monthly Performance Chart"
     }
   },
   "trades": {
@@ -254,12 +268,16 @@
     }
   },
   "routeTitles": {
-    "selectTrader": "Select Trader",
+    "login": "Crypto Tracker Login",
+    "register": "Create Account",
     "dashboard": "Dashboard",
     "trades": "Trades",
     "audit": "Audit Trail",
     "masterData": "Master Data",
-    "formulas": "Formulas"
+    "formulas": "Formulas",
+    "adminUsers": "Users — Admin",
+    "adminGroups": "Groups — Admin",
+    "adminRoles": "Roles — Admin"
   },
   "formulas": {
     "title": "Calculation Formulas",
@@ -395,6 +413,71 @@
     "empty": "No profiles found. Please contact your administrator.",
     "errors": {
       "loadFailed": "Failed to load trader profiles. Please refresh."
+    }
+  },
+  "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "username": "Username"
+    },
+    "login": {
+      "title": "Crypto Tracker Login",
+      "submit": "Log In",
+      "loading": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "register": "Create one"
+    },
+    "register": {
+      "title": "Create Account",
+      "submit": "Create Account",
+      "loading": "Creating account...",
+      "usernameHint": "Must match your trader data folder name",
+      "passwordHint": "Minimum 8 characters",
+      "hasAccount": "Already have an account?",
+      "login": "Log in"
+    },
+    "errors": {
+      "loginFailed": "Invalid email or password",
+      "registerFailed": "Registration failed. Please try again."
+    }
+  },
+  "admin": {
+    "errors": {
+      "loadFailed": "Failed to load data. Please try again.",
+      "saveFailed": "Save failed. Please try again."
+    },
+    "users": {
+      "title": "Users",
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "email": "Email",
+      "username": "Username",
+      "group": "Group",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "newPassword": "New Password (leave blank to keep)",
+      "empty": "No users yet."
+    },
+    "groups": {
+      "title": "Groups",
+      "addGroup": "Add Group",
+      "editGroup": "Edit Group",
+      "name": "Name",
+      "roles": "Roles",
+      "noRoles": "No roles defined yet.",
+      "empty": "No groups yet."
+    },
+    "roles": {
+      "title": "Roles",
+      "addRole": "Add Role",
+      "editRole": "Edit Role",
+      "name": "Name",
+      "permissions": "Permissions",
+      "permissionsHint": "Permissions (comma-separated, e.g. users:manage)",
+      "permissionsAvailable": "Available: users:manage · trades:read · trades:write · trades:delete · audit:read · dashboard:read · master-data:manage · formulas:manage",
+      "empty": "No roles yet."
     }
   }
 }

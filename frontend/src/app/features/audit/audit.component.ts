@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuditApiService } from './audit-api.service';
@@ -12,12 +12,14 @@ import { AuditEntry, AuditFilterState } from './audit.model';
 })
 export class AuditComponent implements OnInit {
   private readonly api = inject(AuditApiService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly entries = signal<AuditEntry[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
   readonly filterState = signal<AuditFilterState>({ action: '', dateFrom: '', dateTo: '' });
+  readonly actionDropdownOpen = signal(false);
 
   readonly filteredEntries = computed(() => {
     const list = this.entries();
@@ -57,6 +59,33 @@ export class AuditComponent implements OnInit {
 
   resetFilters(): void {
     this.filterState.set({ action: '', dateFrom: '', dateTo: '' });
+    this.actionDropdownOpen.set(false);
+  }
+
+  toggleActionDropdown(): void {
+    this.actionDropdownOpen.update((open) => !open);
+  }
+
+  selectAction(action: AuditFilterState['action']): void {
+    this.onFilterChange({ action });
+    this.actionDropdownOpen.set(false);
+  }
+
+  actionLabel(): string {
+    const action = this.filterState().action;
+    return action === '' ? 'audit.filters.allActions' : `audit.actions.${action.toLowerCase()}`;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.actionDropdownOpen()) {
+      return;
+    }
+
+    const target = event.target as Node | null;
+    if (target && !this.host.nativeElement.contains(target)) {
+      this.actionDropdownOpen.set(false);
+    }
   }
 
   formatTimestamp(iso: string): string {

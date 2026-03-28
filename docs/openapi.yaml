@@ -1,0 +1,1367 @@
+openapi: 3.1.0
+
+info:
+  title: CryptoTracker API
+  version: 1.0.0
+  description: |
+    REST API for the CryptoTracker application — a local-first crypto trade journal.
+
+    ## Authentication
+    All trade, audit, and dashboard endpoints require a **trader identity** header.
+    The server validates the value against the known traders list (`shared/traders.json`).
+
+    ```
+    X-Trader-Username: <username>
+    ```
+
+    Requests missing or containing an unknown username receive `401 Unauthorized`.
+
+    ## Data model
+    A **trade** is stored with raw input fields only. Nine **calculated fields** are
+    derived on every read using configurable formulas:
+
+    | Calculated field      | Formula variable |
+    |-----------------------|-----------------|
+    | `investment`          | `volume * buyPrice / leverage` |
+    | `investmentAll`       | `investment * leverage` |
+    | `sellValue`           | `volume * sellPrice / leverage` |
+    | `cost`                | `brokerCost` |
+    | `nettoProfit`         | `sellValue - investment - cost` |
+    | `profitPercent`       | `(nettoProfit / investment) * 100` |
+    | `profitRealPercent`   | `(nettoProfit / investmentAll) * 100` |
+    | `dailyProfitPercent`  | `profitPercent / holdingDays` |
+    | `result`              | `"Win"` if `nettoProfit > 0`, else `"Loss"` |
+
+    ## Error shape
+    All error responses share a consistent envelope:
+
+    ```json
+    {
+      "error": {
+        "code":    "VALIDATION_ERROR",
+        "message": "Human-readable description",
+        "field":   "fieldName"
+      }
+    }
+    ```
+
+servers:
+  - url: http://localhost:3001
+    description: Local development (backend direct)
+  - url: http://localhost:80
+    description: Docker / production (via nginx reverse proxy)
+
+tags:
+  - name: Health
+    description: Service liveness check
+  - name: Traders
+    description: Manage known trader identities
+  - name: Trades
+    description: CRUD operations for trade records (trader-scoped)
+  - name: Dashboard
+    description: Aggregated KPI and analytics data (trader-scoped)
+  - name: Master Data
+    description: Shared reference lists — tokens, positions, and trade types
+  - name: Formulas
+    description: View and customise the profit-calculation formula definitions
+  - name: Audit
+    description: Append-only audit log of all trade mutations (trader-scoped)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable components
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  parameters:
+    TraderUsername:
+      name: X-Trader-Username
+      in: header
+      required: true
+      schema:
+        type: string
+        example: tamas
+      description: Authenticated trader identity. Must exist in the traders list.
+
+  schemas:
+
+    # ── Error ────────────────────────────────────────────────────────────────
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              description: Human-readable description
+              example: Token / position is required
+            field:
+              type: string
+              description: Name of the offending field (validation errors only)
+              example: position
+
+    # ── Trade ────────────────────────────────────────────────────────────────
+    RawTradeInput:
+      type: object
+      required:
+        - position
+        - type
+        - leverage
+        - volume
+        - buyPrice
+        - sellPrice
+        - closeDate
+      properties:
+        position:
+          type: string
+          description: Token symbol (e.g. BTC). Stored as both `position` and `token`.
+          example: BTC
+        token:
+          type: string
+          description: Alias for `position`. If absent, `position` is used.
+          example: BTC
+        type:
+          type: string
+          description: Trade type identifier (must exist in master data).
+          example: spot
+        tradePosition:
+          type: string
+          description: Direction — `long` or `short`. Defaults to `long`.
+          example: long
+          default: long
+        leverage:
+          type: number
+          format: double
+          description: Leverage multiplier. Must be > 0.
+          example: 2
+          exclusiveMinimum: 0
+        volume:
+          type: number
+          format: double
+          description: Size of the position. Must be > 0.
+          example: 0.5
+          exclusiveMinimum: 0
+        buyPrice:
+          type: number
+          format: double
+          description: Entry price per unit. Must be > 0.
+          example: 30000
+          exclusiveMinimum: 0
+        sellPrice:
+          type: number
+          format: double
+          description: Exit price per unit. Must be > 0.
+          example: 35000
+          exclusiveMinimum: 0
+        brokerCost:
+          type: number
+          format: double
+          description: Total broker fee. Must be >= 0. Defaults to 0.
+          example: 12.50
+          minimum: 0
+          default: 0
+        closeDate:
+          type: string
+          format: date
+          description: Trade close date (YYYY-MM-DD).
+          example: "2024-06-01"
+
+    EnrichedTrade:
+      allOf:
+        - $ref: '#/components/schemas/RawTradeInput'
+        - type: object
+          required:
+            - id
+            - createdAt
+            - holdingDays
+            - investment
+            - investmentAll
+            - sellValue
+            - cost
+            - nettoProfit
+            - profitPercent
+            - profitRealPercent
+            - dailyProfitPercent
+            - result
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Server-generated unique identifier.
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            createdAt:
+              type: string
+              format: date-time
+              description: Server-assigned creation timestamp (ISO 8601).
+              example: "2024-06-01T10:00:00.000Z"
+            holdingDays:
+              type: integer
+              description: Calendar days between `createdAt` and `closeDate`. Minimum 1.
+              example: 5
+            investment:
+              type: number
+              description: "`volume * buyPrice / leverage`"
+              example: 7500
+            investmentAll:
+              type: number
+              description: "`investment * leverage`"
+              example: 15000
+            sellValue:
+              type: number
+              description: "`volume * sellPrice / leverage`"
+              example: 8750
+            cost:
+              type: number
+              description: Broker cost (alias of `brokerCost`).
+              example: 12.50
+            nettoProfit:
+              type: number
+              description: "`sellValue - investment - cost`"
+              example: 1237.50
+            profitPercent:
+              type: number
+              description: "`(nettoProfit / investment) * 100`"
+              example: 16.50
+            profitRealPercent:
+              type: number
+              description: "`(nettoProfit / investmentAll) * 100`"
+              example: 8.25
+            dailyProfitPercent:
+              type: number
+              description: "`profitPercent / holdingDays`"
+              example: 3.30
+            result:
+              type: string
+              enum: [Win, Loss]
+              description: "`Win` if `nettoProfit > 0`, else `Loss`."
+              example: Win
+
+    # ── Master data ──────────────────────────────────────────────────────────
+    MasterDataEntry:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          description: >
+            Normalised identifier. For tokens: uppercase symbol (e.g. `BTC`).
+            For positions/trade-types: lowercase kebab-case (e.g. `spot`).
+          example: BTC
+        name:
+          type: string
+          description: Display name.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: Ticker symbol (tokens only, uppercase).
+          example: BTC
+
+    MasterDataInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Display name. Must be unique within the type.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: "(Tokens only) Uppercase ticker. Defaults to the normalised `name`."
+          example: BTC
+        id:
+          type: string
+          description: "(Optional) Custom ID. Auto-derived from name/symbol when absent."
+          example: BTC
+
+    # ── Formula ──────────────────────────────────────────────────────────────
+    FormulaDefinition:
+      type: object
+      required: [field, expression, variables, required]
+      properties:
+        field:
+          type: string
+          description: Calculated field this formula computes.
+          example: nettoProfit
+        expression:
+          type: string
+          description: >
+            Expression syntax follows `expr-eval`. Variables reference raw trade
+            fields plus previously-computed formula outputs.
+          example: "sellValue - investment - cost"
+        variables:
+          type: array
+          items:
+            type: string
+          description: Variable names referenced in the expression.
+          example: ["sellValue", "investment", "cost"]
+        required:
+          type: boolean
+          description: Whether this formula is mandatory and cannot be removed.
+          example: true
+
+    FormulaInput:
+      type: object
+      required: [field, expression]
+      properties:
+        field:
+          type: string
+          description: Target calculated field.
+          example: nettoProfit
+        expression:
+          type: string
+          description: New expression (expr-eval syntax).
+          example: "sellValue - investment - cost"
+
+    # ── Audit ────────────────────────────────────────────────────────────────
+    AuditEntry:
+      type: object
+      required: [id, timestamp, action, traderId, entityId, previousValue, newValue]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique audit entry identifier.
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        timestamp:
+          type: string
+          format: date-time
+          description: UTC time the mutation was applied.
+          example: "2024-06-01T10:05:00.000Z"
+        action:
+          type: string
+          enum: [CREATE, UPDATE, DELETE]
+          example: CREATE
+        traderId:
+          type: string
+          description: Username of the trader who performed the action.
+          example: tamas
+        entityId:
+          type: string
+          description: UUID of the affected trade.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        field:
+          type: string
+          nullable: true
+          description: First changed field (UPDATE actions only).
+          example: sellPrice
+        previousValue:
+          description: Full raw trade snapshot before the mutation. `null` for CREATE.
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/EnrichedTrade'
+            - type: "null"
+        newValue:
+          description: Full raw trade snapshot after the mutation. `null` for DELETE.
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/EnrichedTrade'
+            - type: "null"
+
+    # ── Dashboard ─────────────────────────────────────────────────────────────
+    DashboardKpis:
+      type: object
+      required:
+        - totalTrades
+        - totalNetProfit
+        - bestSingleTrade
+        - worstSingleTrade
+        - winRate
+        - totalProfitPercent
+        - averageProfitPercent
+        - averageDailyProfitPercent
+        - maxDailyProfitPercent
+        - minDailyProfitPercent
+        - maxProfitByTradePercent
+        - maxLossByTradePercent
+      properties:
+        totalTrades:
+          type: integer
+          example: 84
+        totalNetProfit:
+          type: number
+          example: 3250.00
+        bestSingleTrade:
+          type: number
+          nullable: true
+          description: Highest `nettoProfit` across all filtered trades. `null` when no trades.
+          example: 1237.50
+        worstSingleTrade:
+          type: number
+          nullable: true
+          example: -450.00
+        winRate:
+          type: number
+          description: Fraction of winning trades (0–1).
+          example: 0.65
+        totalProfitPercent:
+          type: number
+          example: 43.20
+        averageProfitPercent:
+          type: number
+          example: 5.15
+        averageDailyProfitPercent:
+          type: number
+          example: 1.03
+        maxDailyProfitPercent:
+          type: number
+          nullable: true
+          example: 9.50
+        minDailyProfitPercent:
+          type: number
+          nullable: true
+          example: -3.25
+        maxProfitByTradePercent:
+          type: number
+          nullable: true
+          example: 16.50
+        maxLossByTradePercent:
+          type: number
+          nullable: true
+          example: -6.00
+
+    DashboardOverview:
+      type: object
+      required: [kpis, split, monthly, tokenStats, weekdayStats]
+      properties:
+        kpis:
+          $ref: '#/components/schemas/DashboardKpis'
+        split:
+          type: object
+          required: [winTrades, lossTrades, shortTrades, longTrades]
+          properties:
+            winTrades:
+              type: integer
+              example: 55
+            lossTrades:
+              type: integer
+              example: 29
+            shortTrades:
+              type: integer
+              example: 30
+            longTrades:
+              type: integer
+              example: 54
+        monthly:
+          type: array
+          items:
+            type: object
+            required: [year, month, tradeCount, netProfit, winRate]
+            properties:
+              year:
+                type: integer
+                example: 2024
+              month:
+                type: integer
+                minimum: 1
+                maximum: 12
+                example: 6
+              tradeCount:
+                type: integer
+                example: 12
+              netProfit:
+                type: number
+                example: 540.00
+              winRate:
+                type: number
+                example: 0.75
+        tokenStats:
+          type: array
+          description: Sorted by `netProfit` descending.
+          items:
+            type: object
+            required: [token, tradeCount, netProfit, averageProfitPercent, winRate]
+            properties:
+              token:
+                type: string
+                example: BTC
+              tradeCount:
+                type: integer
+                example: 30
+              netProfit:
+                type: number
+                example: 1800.00
+              averageProfitPercent:
+                type: number
+                example: 6.00
+              winRate:
+                type: number
+                example: 0.70
+        weekdayStats:
+          type: array
+          description: One entry per weekday that has at least one trade.
+          items:
+            type: object
+            required: [weekday, tradeCount, netProfit]
+            properties:
+              weekday:
+                type: string
+                enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+                example: Monday
+              tradeCount:
+                type: integer
+                example: 14
+              netProfit:
+                type: number
+                example: 600.00
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Health ──────────────────────────────────────────────────────────────────
+  /api/v1/health:
+    get:
+      summary: Health check
+      description: Returns `{ "status": "ok" }` when the server is running. No authentication required.
+      operationId: getHealth
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+              example:
+                status: ok
+
+  # ── Traders ─────────────────────────────────────────────────────────────────
+  /api/v1/traders:
+    get:
+      summary: List all traders
+      description: >
+        Returns the array of known trader usernames from `shared/traders.json`.
+        No authentication required — used by the UI to populate the trader selector.
+      operationId: listTraders
+      tags: [Traders]
+      responses:
+        "200":
+          description: Array of trader usernames
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example: ["tamas", "alice"]
+
+  # ── Trades ──────────────────────────────────────────────────────────────────
+  /api/v1/trades:
+    get:
+      summary: List trades
+      description: >
+        Returns all trades for the authenticated trader, each enriched with the
+        nine calculated fields.
+      operationId: listTrades
+      tags: [Trades]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      responses:
+        "200":
+          description: Trade list with total count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [trades, total]
+                properties:
+                  trades:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EnrichedTrade'
+                  total:
+                    type: integer
+                    description: Total number of trades returned.
+              example:
+                total: 2
+                trades:
+                  - id: "550e8400-e29b-41d4-a716-446655440000"
+                    createdAt: "2024-06-01T10:00:00.000Z"
+                    holdingDays: 5
+                    position: BTC
+                    token: BTC
+                    type: spot
+                    tradePosition: long
+                    leverage: 2
+                    volume: 0.5
+                    buyPrice: 30000
+                    sellPrice: 35000
+                    brokerCost: 12.50
+                    closeDate: "2024-06-06"
+                    investment: 7500
+                    investmentAll: 15000
+                    sellValue: 8750
+                    cost: 12.50
+                    nettoProfit: 1237.50
+                    profitPercent: 16.50
+                    profitRealPercent: 8.25
+                    dailyProfitPercent: 3.30
+                    result: Win
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    post:
+      summary: Create a trade
+      description: >
+        Persists a new trade for the authenticated trader. Calculated fields are
+        stripped from the request body and recomputed server-side. Returns the
+        enriched trade. Triggers an audit `CREATE` entry.
+      operationId: createTrade
+      tags: [Trades]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RawTradeInput'
+            example:
+              position: BTC
+              type: spot
+              tradePosition: long
+              leverage: 2
+              volume: 0.5
+              buyPrice: 30000
+              sellPrice: 35000
+              brokerCost: 12.50
+              closeDate: "2024-06-06"
+      responses:
+        "201":
+          description: Trade created, returned with calculated fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedTrade'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Leverage must be a number greater than 0
+                  field: leverage
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/trades/import:
+    post:
+      summary: Bulk import trades
+      description: >
+        Imports an array of trades in a single request. Trades are validated in
+        order; the first validation failure aborts the entire import (no partial
+        writes). `holdingDays` is set to `1` for imported rows. Does **not**
+        write an audit entry.
+      operationId: importTrades
+      tags: [Trades]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trades]
+              properties:
+                trades:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/RawTradeInput'
+      responses:
+        "201":
+          description: All trades imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [imported, trades]
+                properties:
+                  imported:
+                    type: integer
+                    description: Number of trades imported.
+                    example: 3
+                  trades:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EnrichedTrade'
+        "400":
+          description: Validation error on a specific row
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Row 3: Buy price must be a number greater than 0"
+                  field: buyPrice
+                  row: 3
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/trades/{id}:
+    put:
+      summary: Update a trade
+      description: >
+        Replaces all editable fields of the given trade. `id`, `createdAt`, and
+        calculated fields are preserved from the stored record and recomputed.
+        Triggers an audit `UPDATE` entry.
+      operationId: updateTrade
+      tags: [Trades]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the trade to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RawTradeInput'
+      responses:
+        "200":
+          description: Updated trade with recalculated fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedTrade'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "403":
+          description: Trade exists but belongs to a different trader
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: You cannot modify another trader's trade
+        "404":
+          description: Trade not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: Trade not found
+                  field: id
+
+    delete:
+      summary: Delete a trade
+      description: >
+        Permanently removes the trade. Triggers an audit `DELETE` entry with the
+        full trade snapshot in `previousValue`.
+      operationId: deleteTrade
+      tags: [Trades]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the trade to delete.
+      responses:
+        "200":
+          description: Trade deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted, id]
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+                  id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "403":
+          description: Trade belongs to a different trader
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "404":
+          description: Trade not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  # ── Dashboard ───────────────────────────────────────────────────────────────
+  /api/v1/dashboard/overview:
+    get:
+      summary: Full dashboard overview
+      description: >
+        Returns a single aggregated response with KPIs, win/loss split, monthly
+        breakdown, per-token stats, and per-weekday stats.
+
+        Pass `?year=2024` to filter to a single calendar year (based on
+        `closeDate`).  Omit the parameter to aggregate all trades.
+      operationId: getDashboardOverview
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 2024
+          description: Calendar year filter (based on `closeDate`). Omit for all-time.
+      responses:
+        "200":
+          description: Aggregated overview (all fields present even when no trades exist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/dashboard/kpis:
+    get:
+      summary: KPI summary (legacy)
+      description: >
+        Returns a subset of KPI metrics. Prefer `/overview` which includes all
+        KPIs plus breakdown data in a single request.
+      operationId: getDashboardKpis
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      responses:
+        "200":
+          description: KPI summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [totalTrades, totalNetProfit, bestSingleTrade, winRate]
+                properties:
+                  totalTrades:
+                    type: integer
+                    example: 84
+                  totalNetProfit:
+                    type: number
+                    example: 3250.00
+                  bestSingleTrade:
+                    type: number
+                    nullable: true
+                    example: 1237.50
+                  winRate:
+                    type: number
+                    example: 0.65
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/dashboard/monthly:
+    get:
+      summary: Monthly breakdown (legacy)
+      description: >
+        Returns monthly aggregates sorted by year then month ascending.
+        Prefer `/overview` which includes this data alongside all other metrics.
+      operationId: getDashboardMonthly
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      responses:
+        "200":
+          description: Array of monthly rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [year, month, tradeCount, netProfit, winRate]
+                  properties:
+                    year:
+                      type: integer
+                    month:
+                      type: integer
+                    tradeCount:
+                      type: integer
+                    netProfit:
+                      type: number
+                    winRate:
+                      type: number
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  # ── Master Data ─────────────────────────────────────────────────────────────
+  /api/v1/master-data/{type}:
+    get:
+      summary: List master data entries
+      description: >
+        Returns the reference list for the given type.
+        The response key differs per type:
+
+        | `type`        | Response key  |
+        |---------------|---------------|
+        | `tokens`      | `tokens`      |
+        | `positions`   | `positions`   |
+        | `trade-types` | `tradeTypes`  |
+      operationId: listMasterData
+      tags: [Master Data]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [tokens, positions, trade-types]
+          description: Category of master data to retrieve.
+      responses:
+        "200":
+          description: List of entries (response key matches type)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: >
+                  Key is `tokens`, `positions`, or `tradeTypes` depending on the requested type.
+                additionalProperties:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MasterDataEntry'
+              examples:
+                tokens:
+                  summary: GET /api/v1/master-data/tokens
+                  value:
+                    tokens:
+                      - id: BTC
+                        symbol: BTC
+                        name: Bitcoin
+                      - id: ETH
+                        symbol: ETH
+                        name: Ethereum
+                positions:
+                  summary: GET /api/v1/master-data/positions
+                  value:
+                    positions:
+                      - id: long
+                        name: Long
+                      - id: short
+                        name: Short
+                tradeTypes:
+                  summary: GET /api/v1/master-data/trade-types
+                  value:
+                    tradeTypes:
+                      - id: spot
+                        name: Spot
+                      - id: futures
+                        name: Futures
+        "400":
+          description: Unknown master data type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: INVALID_MASTER_DATA_TYPE
+                  message: "Unknown master data type: widgets. Supported: tokens, trade-types, positions"
+
+    post:
+      summary: Add a master data entry
+      description: >
+        Creates a new entry in the given reference list. Names are
+        case-insensitively unique across `id`, `symbol`, and `name` within the
+        same type.
+      operationId: createMasterDataEntry
+      tags: [Master Data]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [tokens, positions, trade-types]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterDataInput'
+            examples:
+              token:
+                summary: Add a token
+                value:
+                  name: Solana
+                  symbol: SOL
+              position:
+                summary: Add a position type
+                value:
+                  name: Long
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterDataEntry'
+              example:
+                id: SOL
+                symbol: SOL
+                name: Solana
+        "400":
+          description: Validation error (missing name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "409":
+          description: Duplicate name or symbol
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: DUPLICATE_ENTRY
+                  message: Bitcoin already exists in tokens
+                  field: name
+
+  /api/v1/master-data/{type}/{id}:
+    put:
+      summary: Update a master data entry
+      description: >
+        Replaces the `name` (and optionally `symbol` / `id`) of an existing
+        entry. If `id` is changed, the new value is normalised (uppercase for
+        tokens, kebab-case for others).
+      operationId: updateMasterDataEntry
+      tags: [Master Data]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [tokens, positions, trade-types]
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Current entry ID (case-insensitive lookup).
+          example: BTC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterDataInput'
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterDataEntry'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: "tokens entry not found: XYZ"
+        "409":
+          description: New name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Delete a master data entry
+      description: Permanently removes an entry from the reference list.
+      operationId: deleteMasterDataEntry
+      tags: [Master Data]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [tokens, positions, trade-types]
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Entry ID to delete (case-insensitive lookup).
+          example: BTC
+      responses:
+        "200":
+          description: Entry deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  # ── Formulas ─────────────────────────────────────────────────────────────────
+  /api/v1/formulas:
+    get:
+      summary: List formula definitions
+      description: >
+        Returns all editable formula definitions. The `required` flag indicates
+        formulas that cannot be deleted (the 8 core profit calculations).
+      operationId: listFormulas
+      tags: [Formulas]
+      responses:
+        "200":
+          description: Current formula definitions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [formulas]
+                properties:
+                  formulas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormulaDefinition'
+              example:
+                formulas:
+                  - field: investment
+                    expression: "volume * buyPrice / leverage"
+                    variables: [volume, buyPrice, leverage]
+                    required: true
+                  - field: nettoProfit
+                    expression: "sellValue - investment - cost"
+                    variables: [sellValue, investment, cost]
+                    required: true
+
+    put:
+      summary: Replace formula definitions
+      description: >
+        Atomically replaces all editable formula definitions with the provided
+        array. The server validates that:
+        - All 8 required fields are present
+        - No reserved variable names are used as custom field names
+        - All referenced variables are either raw trade fields or previously
+          defined formula fields
+
+        On success, all subsequent trade reads use the new formulas immediately.
+      operationId: updateFormulas
+      tags: [Formulas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formulas]
+              properties:
+                formulas:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/FormulaInput'
+      responses:
+        "200":
+          description: Updated formula definitions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [formulas]
+                properties:
+                  formulas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormulaDefinition'
+        "400":
+          description: Invalid formula configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: INVALID_FORMULA_CONFIG
+                  message: "Missing required formula field: nettoProfit"
+
+  /api/v1/formulas/preview:
+    post:
+      summary: Preview formula changes
+      description: >
+        Validates and returns what the formula definitions would look like if
+        applied, **without** persisting them. Useful for a dry-run before
+        calling `PUT /api/v1/formulas`.
+      operationId: previewFormulas
+      tags: [Formulas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formulas]
+              properties:
+                formulas:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FormulaInput'
+      responses:
+        "200":
+          description: Validated formula definitions (not yet saved)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [formulas]
+                properties:
+                  formulas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormulaDefinition'
+        "400":
+          description: Invalid formula configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  # ── Audit ────────────────────────────────────────────────────────────────────
+  /api/v1/audit:
+    get:
+      summary: Get audit log
+      description: >
+        Returns the full append-only audit log for the authenticated trader in
+        chronological order. Each entry captures a trade mutation with a full
+        before/after snapshot.
+      operationId: getAuditLog
+      tags: [Audit]
+      parameters:
+        - $ref: '#/components/parameters/TraderUsername'
+      responses:
+        "200":
+          description: Audit entries and total count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, total]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEntry'
+                  total:
+                    type: integer
+                    example: 42
+              example:
+                total: 1
+                entries:
+                  - id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                    timestamp: "2024-06-01T10:05:00.000Z"
+                    action: CREATE
+                    traderId: tamas
+                    entityId: "550e8400-e29b-41d4-a716-446655440000"
+                    field: null
+                    previousValue: null
+                    newValue:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      position: BTC
+                      type: spot
+                      leverage: 2
+                      volume: 0.5
+                      buyPrice: 30000
+                      sellPrice: 35000
+                      brokerCost: 12.50
+                      closeDate: "2024-06-06"
+        "401":
+          description: Missing or unknown trader identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
