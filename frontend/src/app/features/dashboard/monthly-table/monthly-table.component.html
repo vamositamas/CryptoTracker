@@ -1,4 +1,4 @@
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden h-full flex flex-col">
   <div class="px-6 py-4 border-b border-gray-200">
     <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.monthly.title' | translate }}</h2>
   </div>
@@ -33,7 +33,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          @for (row of data; track row.year + '-' + row.month) {
+          @for (row of pagedData; track row.year + '-' + row.month; let i = $index) {
             <tr
               class="hover:bg-gray-50 transition-colors"
               [class.bg-blue-50]="isCurrentMonth(row)"
@@ -49,8 +49,8 @@
               <td class="px-6 py-3 text-right tabular-nums" [ngClass]="profitColorClass(row.totalDailyProfitPercent)">
                 {{ row.totalDailyProfitPercent.toFixed(2) }}%
               </td>
-              <td class="px-6 py-3 text-right tabular-nums font-medium" [ngClass]="profitColorClass(deltaPercent($index))">
-                {{ deltaPercent($index) >= 0 ? '+' : '' }}{{ deltaPercent($index).toFixed(2) }}%
+              <td class="px-6 py-3 text-right tabular-nums font-medium" [ngClass]="profitColorClass(deltaPercent(startIndex + i))">
+                {{ deltaPercent(startIndex + i) >= 0 ? '+' : '' }}{{ deltaPercent(startIndex + i).toFixed(2) }}%
               </td>
               <td class="px-6 py-3 text-right tabular-nums" [ngClass]="winRateColorClass(row.winRate)">
                 {{ formatPercent(row.winRate) }}
@@ -60,5 +60,34 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between px-6 py-3 border-t border-gray-100 text-sm text-gray-600">
+        <button
+          type="button"
+          class="flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          [disabled]="currentPage === 1"
+          (click)="prevPage()"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          {{ 'dashboard.monthly.prev' | translate }}
+        </button>
+        <span>{{ currentPage }} / {{ totalPages }}</span>
+        <button
+          type="button"
+          class="flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+        >
+          {{ 'dashboard.monthly.next' | translate }}
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    }
   }
 </div>

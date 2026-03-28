@@ -13,9 +13,42 @@ export class MonthlyTableComponent {
   @Input() data: MonthlyData[] = [];
   @Input() loading = false;
 
-  deltaPercent(index: number): number {
-    if (index === 0) return this.data[0]?.profitPercent ?? 0;
-    return (this.data[index]?.profitPercent ?? 0) - (this.data[index - 1]?.profitPercent ?? 0);
+  readonly pageSize = 5;
+  currentPage = 1;
+
+  get sortedData(): MonthlyData[] {
+    return [...this.data].sort((a, b) =>
+      a.year !== b.year ? b.year - a.year : b.month - a.month,
+    );
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.sortedData.length / this.pageSize));
+  }
+
+  get pagedData(): MonthlyData[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.sortedData.slice(start, start + this.pageSize);
+  }
+
+  get startIndex(): number {
+    return (this.currentPage - 1) * this.pageSize;
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) this.currentPage--;
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  // globalIndex is position in sortedData (descending); delta = current - previous month
+  deltaPercent(globalIndex: number): number {
+    const sorted = this.sortedData;
+    const current = sorted[globalIndex]?.profitPercent ?? 0;
+    const prev = sorted[globalIndex + 1]?.profitPercent;
+    return prev === undefined ? current : current - prev;
   }
 
   get currentMonth(): number {

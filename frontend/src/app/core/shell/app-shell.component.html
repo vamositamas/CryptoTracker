@@ -48,14 +48,6 @@
         [attr.aria-label]="'shell.nav.formulas' | translate"
       >{{ 'shell.nav.formulas' | translate }}</a>
     </li>
-    <li>
-      <a
-        routerLink="/audit"
-        routerLinkActive="bg-blue-900/40 !text-blue-300"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
-        [attr.aria-label]="'shell.nav.audit' | translate"
-      >{{ 'shell.nav.audit' | translate }}</a>
-    </li>
     @if (authService.hasPermission('users:manage')) {
       <li class="pt-3 mt-1 border-t border-gray-800">
         <span class="px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ 'shell.nav.admin' | translate }}</span>
@@ -83,6 +75,14 @@
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
           [attr.aria-label]="'shell.nav.adminRoles' | translate"
         >{{ 'shell.nav.adminRoles' | translate }}</a>
+      </li>
+      <li>
+        <a
+          routerLink="/audit"
+          routerLinkActive="bg-blue-900/40 !text-blue-300"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+          [attr.aria-label]="'shell.nav.audit' | translate"
+        >{{ 'shell.nav.audit' | translate }}</a>
       </li>
     }
   </ul>

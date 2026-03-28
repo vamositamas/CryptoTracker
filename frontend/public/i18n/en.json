@@ -91,6 +91,8 @@
     "monthly": {
       "title": "Monthly Performance",
       "empty": "No monthly data available yet",
+      "prev": "Prev",
+      "next": "Next",
       "columns": {
         "month": "Month",
         "trades": "Trades",

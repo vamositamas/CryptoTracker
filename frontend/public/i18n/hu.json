@@ -91,6 +91,8 @@
     "monthly": {
       "title": "Havi teljesítmény",
       "empty": "Még nincs havi adat",
+      "prev": "Előző",
+      "next": "Következő",
       "columns": {
         "month": "Hónap",
         "trades": "Kötések",
