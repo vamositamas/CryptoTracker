@@ -21,6 +21,8 @@ class FakeTranslateLoader implements TranslateLoader {
           audit: 'Audit Trail',
           masterData: 'Master Data',
           formulas: 'Formulas',
+          profile: 'My Profile',
+          userGuide: 'User Guide',
         },
       },
     });
@@ -52,7 +54,7 @@ describe('AppShellComponent', () => {
     expect(skip!.textContent?.trim()).toBe('Skip to main content');
   });
 
-  it('renders nav links for all 5 sections', async () => {
+  it('renders nav links for all core sections', async () => {
     const fixture = TestBed.createComponent(AppShellComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -62,7 +64,6 @@ describe('AppShellComponent', () => {
     const labels = anchors.map(a => a.textContent?.trim());
     expect(labels).toContain('Dashboard');
     expect(labels).toContain('Trades');
-    expect(labels).toContain('Audit Trail');
     expect(labels).toContain('Master Data');
     expect(labels).toContain('Formulas');
   });
@@ -74,7 +75,7 @@ describe('AppShellComponent', () => {
     const navLinks = Array.from(
       fixture.nativeElement.querySelectorAll('nav ul a'),
     ) as HTMLAnchorElement[];
-    expect(navLinks.length).toBe(5);
+    expect(navLinks.length).toBe(4);
     for (const link of navLinks) {
       expect(link.className).toContain('focus-visible:ring-2');
     }

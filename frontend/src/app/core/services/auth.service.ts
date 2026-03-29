@@ -17,6 +17,12 @@ interface AuthResponse {
   user: { id: string; email: string; username: string; groupId: string; active: boolean; createdAt: string };
 }
 
+interface UpdateMePayload {
+  email?: string;
+  username?: string;
+  password?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -60,6 +66,12 @@ export class AuthService {
   register(email: string, username: string, password: string) {
     return this.http
       .post<AuthResponse>('/api/v1/auth/register', { email, username, password })
+      .pipe(tap((res) => this.storeToken(res.token)));
+  }
+
+  updateMe(payload: UpdateMePayload) {
+    return this.http
+      .put<AuthResponse>('/api/v1/auth/me', payload)
       .pipe(tap((res) => this.storeToken(res.token)));
   }
 

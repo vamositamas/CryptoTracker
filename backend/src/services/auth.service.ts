@@ -40,6 +40,7 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto {
   email?: string;
+  username?: string;
   groupId?: string;
   active?: boolean;
   password?: string;
@@ -113,9 +114,17 @@ export class UserStorageService {
       if (conflict) throwError(409, 'DUPLICATE_EMAIL', 'Email already registered', 'email');
       users[idx].email = dto.email;
     }
+    if (dto.username !== undefined) {
+      const conflict = users.find(u => u.id !== id && u.username.toLowerCase() === dto.username!.toLowerCase());
+      if (conflict) throwError(409, 'DUPLICATE_USERNAME', 'Username already taken', 'username');
+      users[idx].username = dto.username;
+    }
     if (dto.groupId !== undefined) users[idx].groupId = dto.groupId;
     if (dto.active !== undefined) users[idx].active = dto.active;
     if (dto.password !== undefined) {
+      if (dto.password.length < 8) {
+        throwError(400, 'VALIDATION_ERROR', 'Password must be at least 8 characters', 'password');
+      }
       users[idx].passwordHash = await bcrypt.hash(dto.password, 10);
     }
     await storageService.write(this.path, users);
@@ -135,6 +144,11 @@ export class UserStorageService {
     return users.find(u => u.email.toLowerCase() === email.toLowerCase());
   }
 
+  async getRawById(id: string): Promise<User | undefined> {
+    const users = await storageService.read<User[]>(this.path);
+    return users.find(u => u.id === id);
+  }
+
   async isEmpty(): Promise<boolean> {
     const users = await storageService.read<User[]>(this.path);
     return users.length === 0;
@@ -144,6 +158,14 @@ export class UserStorageService {
 export const userStorageService = new UserStorageService();
 
 export class AuthService {
+  async getUserById(id: string): Promise<PublicUser> {
+    return userStorageService.getUserById(id);
+  }
+
+  async updateUser(id: string, dto: UpdateUserDto): Promise<PublicUser> {
+    return userStorageService.updateUser(id, dto);
+  }
+
   async register(email: string, username: string, password: string): Promise<{ token: string; user: PublicUser }> {
     const isFirst = await userStorageService.isEmpty();
     const groupId = isFirst ? 'superadmin-group' : 'superadmin-group'; // default; admins can change later
@@ -174,6 +196,14 @@ export class AuthService {
 
   verifyToken(token: string): JwtPayload {
     return jwt.verify(token, getJwtSecret()) as JwtPayload;
+  }
+
+  async refreshTokenForUserId(id: string): Promise<string> {
+    const raw = await userStorageService.getRawById(id);
+    if (!raw) {
+      throwError(404, 'NOT_FOUND', `User not found: ${id}`);
+    }
+    return this.issueToken(raw!.id, raw!.email, raw!.username, raw!.groupId);
   }
 }
 

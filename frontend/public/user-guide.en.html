@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoTracker — User Guide</title>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      left: 0; top: 0;
+      width: 260px;
+      height: 100vh;
+      overflow-y: auto;
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 24px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 100;
+    }
+    #sidebar .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      padding: 0 8px 16px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+    #sidebar .brand span { color: #60a5fa; }
+    #sidebar .toc-section {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      padding: 12px 8px 4px;
+    }
+    #sidebar a {
+      display: block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    #sidebar a:hover { background: #1e293b; color: #e2e8f0; }
+    #sidebar a.active { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
+    .flag-link {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid #1e293b;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .flag-link a { color: #60a5fa; font-weight: 500; }
+
+    /* ── Content ───────────────────────────────────────────────── */
+    main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 48px 56px 80px;
+      max-width: 900px;
+    }
+
+    /* ── Typography ────────────────────────────────────────────── */
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 1.05rem;
+      color: #64748b;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .icon { font-size: 1.3rem; }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e40af;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+    p { margin-bottom: 14px; color: #334155; }
+    ul, ol { padding-left: 20px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; color: #334155; }
+    strong { color: #0f172a; }
+    code {
+      background: #e2e8f0;
+      color: #7c3aed;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.88em;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+
+    /* ── Hero banner ───────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 60%, #1d4ed8 100%);
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 48px;
+      color: #fff;
+    }
+    .hero h1 { color: #fff; margin-bottom: 8px; }
+    .hero .subtitle { color: #bfdbfe; margin-bottom: 0; }
+    .hero .version {
+      display: inline-block;
+      margin-top: 16px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #dbeafe;
+    }
+
+    /* ── Cards & callouts ──────────────────────────────────────── */
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 20px 0;
+    }
+    .info-box.tip {
+      background: #f0fdf4;
+      border-left-color: #22c55e;
+    }
+    .info-box.warning {
+      background: #fffbeb;
+      border-left-color: #f59e0b;
+    }
+    .info-box .label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .info-box.tip .label { color: #16a34a; }
+    .info-box.warning .label { color: #b45309; }
+    .info-box .label { color: #2563eb; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card .card-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .card p { font-size: 0.85rem; margin-bottom: 0; color: #64748b; }
+
+    /* ── Table ─────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    thead th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8fafc; }
+
+    /* ── Badges ────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-purple { background: #f3e8ff; color: #7e22ce; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+
+    /* ── Step list ─────────────────────────────────────────────── */
+    .steps { list-style: none; padding: 0; counter-reset: step-counter; margin: 20px 0; }
+    .steps li {
+      padding: 14px 14px 14px 58px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      position: relative;
+      counter-increment: step-counter;
+    }
+    .steps li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: #1d4ed8;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    /* ── Keyboard shortcut ─────────────────────────────────────── */
+    kbd {
+      display: inline-block;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.8rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: #334155;
+    }
+
+    /* ── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      main { margin-left: 0; padding: 24px 20px 60px; }
+    }
+
+    /* ── Print ─────────────────────────────────────────────────── */
+    @media print {
+      #sidebar { display: none; }
+      main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Sidebar / Table of Contents ───────────────────────────────── -->
+<nav id="sidebar" aria-label="Table of contents">
+  <div class="brand"><span>Crypto</span>Tracker — User Guide</div>
+
+  <div class="toc-section">Getting Started</div>
+  <a href="#overview">Overview</a>
+  <a href="#login">Login &amp; Registration</a>
+  <a href="#navigation">Navigation</a>
+
+  <div class="toc-section">Features</div>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#trades">Trades</a>
+  <a href="#master-data">Master Data</a>
+  <a href="#formulas">Formulas</a>
+
+  <div class="toc-section">Administration</div>
+  <a href="#audit">Audit Trail</a>
+  <a href="#admin-users">Users</a>
+  <a href="#admin-groups">Groups</a>
+  <a href="#admin-roles">Roles &amp; Permissions</a>
+
+  <div class="toc-section">Reference</div>
+  <a href="#permissions">Permissions Reference</a>
+  <a href="#shortcuts">Keyboard Shortcuts</a>
+
+  <div class="flag-link">
+    🇭🇺 <a href="user-guide.hu.html">Magyar verzió</a>
+  </div>
+</nav>
+
+<!-- ─── Main content ───────────────────────────────────────────────── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>CryptoTracker</h1>
+    <p class="subtitle">Complete User Guide — everything you need to track, analyse, and manage your crypto trades.</p>
+    <span class="version">Version 1.0 · English</span>
+  </div>
+
+  <!-- ── 1. Overview ──────────────────────────────────────────────── -->
+  <h2 id="overview"><span class="icon">📋</span> Overview</h2>
+  <p>
+    <strong>CryptoTracker</strong> is a web-based platform designed for individual traders and teams who want a structured, data-driven view of their cryptocurrency trading activity. It records every trade, calculates profit & loss automatically using customisable formulas, and gives you rich analytics at a glance.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">📊 Dashboard</div>
+      <p>KPI cards, monthly charts, token rankings, and weekday performance heatmaps.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Trades</div>
+      <p>Log, edit, filter, and import trades. Net profit is calculated automatically.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂 Master Data</div>
+      <p>Shared reference lists for tokens, trade types, and positions used across the team.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔢 Formulas</div>
+      <p>Customise how profit, cost, and daily metrics are calculated — no coding required.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Audit Trail</div>
+      <p>Immutable log of every create, update, and delete action across all trades.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Administration</div>
+      <p>User, group, and role management with fine-grained permission control.</p>
+    </div>
+  </div>
+
+  <!-- ── 2. Login & Registration ──────────────────────────────────── -->
+  <h2 id="login"><span class="icon">🔑</span> Login &amp; Registration</h2>
+
+  <h3>Logging In</h3>
+  <ol class="steps">
+    <li>Open the application in your browser. You will be redirected to the login page automatically.</li>
+    <li>Enter your <strong>email address</strong> and <strong>password</strong>.</li>
+    <li>Click <strong>Log In</strong>. On success you are taken to the Dashboard.</li>
+  </ol>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Note</div>
+    If login fails, double-check your email and password. Contact your administrator if you cannot access your account.
+  </div>
+
+  <h3>Creating an Account</h3>
+  <ol class="steps">
+    <li>On the login page click <strong>"Create one"</strong> at the bottom.</li>
+    <li>Enter your <strong>email</strong>, <strong>username</strong>, and a <strong>password</strong> (minimum 8 characters).</li>
+    <li>The username <em>must</em> match your trader data folder as configured by your administrator.</li>
+    <li>Click <strong>Create Account</strong>. You will be logged in automatically.</li>
+  </ol>
+
+  <h3>Switching Trader Profile</h3>
+  <p>
+    If your account is associated with multiple trader profiles, a profile selector will appear after login.
+    Choose the profile you want to work with and confirm.
+  </p>
+
+  <h3>Logging Out</h3>
+  <p>Click your username at the bottom of the sidebar, then click <strong>Log out</strong>.</p>
+
+  <!-- ── 3. Navigation ────────────────────────────────────────────── -->
+  <h2 id="navigation"><span class="icon">🧭</span> Navigation</h2>
+  <p>
+    The application uses a fixed <strong>left sidebar</strong> for navigation. Click any item to go directly to that section.
+    The active page is highlighted in blue. The bottom of the sidebar shows:
+  </p>
+  <ul>
+    <li><strong>Language toggle</strong> — switch between English (EN) and Hungarian (HU) at any time.</li>
+    <li><strong>Your username</strong> — indicates the currently signed-in user.</li>
+    <li><strong>Log out</strong> — ends your session.</li>
+  </ul>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tip</div>
+    Language preference is remembered between sessions. Switch once and the app remembers your choice.
+  </div>
+
+  <!-- ── 4. Dashboard ─────────────────────────────────────────────── -->
+  <h2 id="dashboard"><span class="icon">📊</span> Dashboard</h2>
+  <p>
+    The Dashboard is your at-a-glance performance overview. It aggregates all recorded trades into key performance indicators (KPIs), charts, and breakdowns.
+  </p>
+
+  <h3>View Modes</h3>
+  <p>Use the <strong>View</strong> dropdown at the top to switch between:</p>
+  <ul>
+    <li><strong>All data</strong> — aggregate statistics across your entire trade history.</li>
+    <li><strong>Selected year</strong> — choose a specific year from the dropdown to focus the view.</li>
+  </ul>
+
+  <h3>KPI Cards — Summary</h3>
+  <table>
+    <thead><tr><th>KPI</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Total Trades</strong></td><td>Total number of recorded trades.</td></tr>
+      <tr><td><strong>Total Net Profit</strong></td><td>Sum of net profit across all trades (USDT).</td></tr>
+      <tr><td><strong>Best Single Trade</strong></td><td>Highest net profit of any individual trade.</td></tr>
+      <tr><td><strong>Win Rate</strong></td><td>Percentage of trades that closed in profit.</td></tr>
+      <tr><td><strong>Total Profit %</strong></td><td>Cumulative return as a percentage of invested volume.</td></tr>
+      <tr><td><strong>Avg Profit %</strong></td><td>Average return per trade.</td></tr>
+      <tr><td><strong>Avg Daily Profit %</strong></td><td>Average daily return (normalised by holding duration).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Trade Distribution</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Win / Loss ratio</strong></td><td>Number of winning trades vs. losing trades.</td></tr>
+      <tr><td><strong>Short / Long ratio</strong></td><td>Number of short positions vs. long positions.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Extremes</h3>
+  <table>
+    <thead><tr><th>KPI</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Best Token</strong></td><td>Token with the highest cumulative net profit.</td></tr>
+      <tr><td><strong>Max Daily Profit %</strong></td><td>Best single-day return achieved.</td></tr>
+      <tr><td><strong>Min Daily Profit %</strong></td><td>Worst single-day return.</td></tr>
+      <tr><td><strong>Max Profit / Trade %</strong></td><td>Highest percentage return on a single trade.</td></tr>
+      <tr><td><strong>Max Loss / Trade %</strong></td><td>Worst percentage loss on a single trade.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Token Performance Table</h3>
+  <p>
+    Detailed breakdown by token — trades count, net profit in USDT, net profit%, and win rate.
+    Useful for identifying which assets deliver the best returns.
+  </p>
+
+  <h3>Weekday Performance</h3>
+  <p>Aggregate performance grouped by day of the week (Monday–Sunday). Helps identify if certain weekdays are more profitable.</p>
+
+  <h3>Monthly Performance Table &amp; Chart</h3>
+  <p>
+    Month-by-month breakdown of trades, net profit, profit %, average daily profit %, monthly delta %, and win rate.
+    Use the <strong>Prev</strong> / <strong>Next</strong> buttons to paginate through years.
+    The bar chart beneath the table visualises monthly results at a glance.
+  </p>
+
+  <!-- ── 5. Trades ─────────────────────────────────────────────────── -->
+  <h2 id="trades"><span class="icon">📈</span> Trades</h2>
+  <p>The Trades page is where you record and manage all your trading activity.</p>
+
+  <h3>Trade List</h3>
+  <p>The table shows all recorded trades with the following columns:</p>
+  <table>
+    <thead><tr><th>Column</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Close Date</td><td>The date the trade was closed.</td></tr>
+      <tr><td>Token</td><td>The cryptocurrency traded (e.g. BTC, ETH).</td></tr>
+      <tr><td>Position</td><td>The position type (e.g. Spot, Futures).</td></tr>
+      <tr><td>Type</td><td>Direction — Long or Short.</td></tr>
+      <tr><td>Cost</td><td>Broker/exchange fee in USDT.</td></tr>
+      <tr><td>Leverage</td><td>Leverage multiplier applied.</td></tr>
+      <tr><td>Volume</td><td>Trade volume in USDT.</td></tr>
+      <tr><td>Buy Price</td><td>Entry price in USDT.</td></tr>
+      <tr><td>Sell Price</td><td>Exit price in USDT.</td></tr>
+      <tr><td>Net Profit</td><td>Calculated net profit in USDT (auto-computed).</td></tr>
+      <tr><td>Profit %</td><td>Return as a percentage (auto-computed).</td></tr>
+      <tr><td>Daily Net Profit</td><td>Net profit normalised per day held (auto-computed).</td></tr>
+      <tr><td>Daily Profit %</td><td>Daily return as a percentage (auto-computed).</td></tr>
+      <tr><td>Result</td><td><span class="badge badge-green">Win</span> or <span class="badge badge-orange">Loss</span>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Adding a New Trade</h3>
+  <ol class="steps">
+    <li>Click <strong>+ New Trade</strong> (top right) or press <kbd>N</kbd>.</li>
+    <li>Select the <strong>Token</strong>, <strong>Position</strong>, and <strong>Trade Type</strong> from the dropdowns.</li>
+    <li>Enter <strong>Broker Cost</strong>, <strong>Leverage</strong>, <strong>Volume</strong>, <strong>Buy Price</strong>, <strong>Sell Price</strong>, and <strong>Close Date</strong>.</li>
+    <li>Click <strong>Save Trade</strong> or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</li>
+  </ol>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Before you start</div>
+    Tokens, positions, and trade types must be configured in <a href="#master-data"><strong>Master Data</strong></a> before you can create trades.
+    If a dropdown is empty, ask your administrator to set up the reference data.
+  </div>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tip</div>
+    The form will warn you if leverage exceeds 100× or if the buy price appears unusually low — review these before saving.
+  </div>
+
+  <h3>Editing a Trade</h3>
+  <p>
+    Click the <strong>Edit</strong> icon (pencil) on any row. The row expands into an inline editor — change the values and press <strong>Save</strong>.
+    Press <strong>Cancel</strong> to discard changes.
+  </p>
+
+  <h3>Deleting a Trade</h3>
+  <p>
+    Click the <strong>Delete</strong> icon (trash) on any row. A confirmation prompt will appear. Confirm to permanently remove the trade.
+  </p>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Warning</div>
+    Deletion is permanent. The audit trail records the deletion for reference, but the trade data cannot be recovered.
+  </div>
+
+  <h3>Filtering Trades</h3>
+  <p>Use the <strong>Filters</strong> panel (top of the trade list) to narrow results by:</p>
+  <ul>
+    <li><strong>Token</strong> — select a specific token or search by name.</li>
+    <li><strong>Position</strong> — filter by position type.</li>
+    <li><strong>Type</strong> — filter by trade type (Long/Short).</li>
+    <li><strong>Result</strong> — show only Win or Loss trades.</li>
+    <li><strong>Date range</strong> — set a From and To date.</li>
+  </ul>
+  <p>Click <strong>Clear filters</strong> to remove all active filters at once.</p>
+
+  <h3>Summary Bar</h3>
+  <p>Above the table a summary bar shows <strong>Total Trades</strong>, <strong>Wins</strong>, <strong>Losses</strong>, and <strong>Today</strong> counts, always reflecting the currently applied filter.</p>
+
+  <h3>Importing Trades from Excel</h3>
+  <ol class="steps">
+    <li>Click the <strong>Import Excel</strong> button in the trade list header.</li>
+    <li>Optionally download the <strong>template</strong> to see the required column structure.</li>
+    <li>Select your Excel file. The first worksheet is read; columns must match the template layout.</li>
+    <li>After a successful import a toast notification shows how many trades were added.</li>
+  </ol>
+
+  <!-- ── 6. Master Data ────────────────────────────────────────────── -->
+  <h2 id="master-data"><span class="icon">🗂</span> Master Data</h2>
+  <p>
+    Master Data contains the shared reference lists used when recording trades.
+    Changes here are visible to the entire team immediately.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Permission required</div>
+    Managing master data requires the <code>master-data:manage</code> permission.
+  </div>
+
+  <p>Three tabs are available:</p>
+  <ul>
+    <li><strong>Tokens</strong> — cryptocurrency symbols (e.g. <code>BTC</code>, <code>ETH</code>, <code>SOL</code>).</li>
+    <li><strong>Trade Types</strong> — direction classifiers (e.g. <code>Long</code>, <code>Short</code>).</li>
+    <li><strong>Positions</strong> — market types (e.g. <code>Spot</code>, <code>Futures</code>, <code>Margin</code>).</li>
+  </ul>
+
+  <h3>Adding a Value</h3>
+  <ol class="steps">
+    <li>Select the appropriate tab (Tokens, Trade Types, or Positions).</li>
+    <li>Click the <strong>Add …</strong> button (e.g. "Add token").</li>
+    <li>Type the value name and press <strong>Save</strong>.</li>
+  </ol>
+
+  <h3>Editing or Deleting a Value</h3>
+  <p>
+    Use the <strong>Edit</strong> or <strong>Delete</strong> icons on any list row.
+    Deleting a value does <em>not</em> remove historical trades that reference it — it only removes it from the selection list for new trades.
+  </p>
+
+  <!-- ── 7. Formulas ───────────────────────────────────────────────── -->
+  <h2 id="formulas"><span class="icon">🔢</span> Formulas</h2>
+  <p>
+    The Formulas page lets you define how trade metrics such as net profit, profit %, and daily returns are calculated.
+    Formulas use the <strong>expr-eval</strong> expression syntax and can reference trade input fields as well as previously defined formula fields.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Permission required</div>
+    Managing formulas requires the <code>formulas:manage</code> permission.
+  </div>
+
+  <h3>Built-in Variables</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>buyPrice</code></td><td>Trade entry price (USDT).</td></tr>
+      <tr><td><code>sellPrice</code></td><td>Trade exit price (USDT).</td></tr>
+      <tr><td><code>volume</code></td><td>Trade volume (USDT).</td></tr>
+      <tr><td><code>leverage</code></td><td>Leverage multiplier.</td></tr>
+      <tr><td><code>brokerCost</code></td><td>Broker/exchange fee (USDT).</td></tr>
+      <tr><td><code>closeDate</code></td><td>Close date as ISO string.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Required Formulas</h3>
+  <p>
+    Some formulas are marked <span class="badge badge-blue">Required</span> — they cannot be deleted because other parts of the application depend on them.
+    You can edit their expressions, but make sure the formula remains valid before saving.
+  </p>
+
+  <h3>Adding a Custom Formula</h3>
+  <ol class="steps">
+    <li>Click <strong>Add formula</strong>.</li>
+    <li>Enter a unique <strong>field name</strong> (letters, numbers, underscores — must start with a letter).</li>
+    <li>Write the <strong>expression</strong> using the variables listed above or any formula name defined in a row above.</li>
+    <li>Watch the live <strong>preview</strong> status — it shows whether the expression is valid before you save.</li>
+    <li>Click <strong>Save formulas</strong> to apply changes to the entire team.</li>
+  </ol>
+
+  <div class="info-box tip">
+    <div class="label">💡 Example</div>
+    To calculate gross profit for a long trade: <code>(sellPrice - buyPrice) * volume / buyPrice * leverage - brokerCost</code>
+  </div>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Caution</div>
+    Changing a required formula affects every trade calculation immediately. Test thoroughly in the preview before saving.
+  </div>
+
+  <!-- ── 8. Audit Trail ────────────────────────────────────────────── -->
+  <h2 id="audit"><span class="icon">🔍</span> Audit Trail</h2>
+  <p>
+    The Audit Trail is an immutable, chronological log of every <span class="badge badge-green">CREATE</span>, <span class="badge badge-blue">UPDATE</span>, and <span class="badge badge-orange">DELETE</span> action performed on trades.
+    It provides full accountability and change history.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Permission required</div>
+    Viewing the audit trail requires the <code>audit:read</code> permission (typically assigned to administrators).
+  </div>
+
+  <h3>Audit Log Columns</h3>
+  <table>
+    <thead><tr><th>Column</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Timestamp</td><td>Exact date and time of the action.</td></tr>
+      <tr><td>Trader</td><td>The trader profile affected.</td></tr>
+      <tr><td>Action</td><td>CREATE, UPDATE, or DELETE.</td></tr>
+      <tr><td>Trade ID</td><td>Internal identifier of the trade.</td></tr>
+      <tr><td>Field</td><td>Which field was changed (for UPDATE actions).</td></tr>
+      <tr><td>Old Value</td><td>The value before the change.</td></tr>
+      <tr><td>New Value</td><td>The value after the change.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Filtering the Audit Log</h3>
+  <ul>
+    <li><strong>Action</strong> — filter by CREATE, UPDATE, or DELETE.</li>
+    <li><strong>Date range</strong> — set a From date and/or To date.</li>
+  </ul>
+  <p>Click <strong>Clear filters</strong> to reset the view.</p>
+
+  <!-- ── 9. Admin — Users ──────────────────────────────────────────── -->
+  <h2 id="admin-users"><span class="icon">👤</span> Administration — Users</h2>
+
+  <div class="info-box">
+    <div class="label">ℹ Permission required</div>
+    All administration pages require the <code>users:manage</code> permission.
+  </div>
+
+  <p>The Users page lists every registered account. For each user you can see and configure:</p>
+  <ul>
+    <li><strong>Email</strong> — login email address.</li>
+    <li><strong>Username</strong> — display name and trader data folder reference.</li>
+    <li><strong>Group</strong> — the group the user belongs to (determines roles and permissions).</li>
+    <li><strong>Status</strong> — <span class="badge badge-green">Active</span> or <span class="badge badge-gray">Inactive</span>.</li>
+  </ul>
+
+  <h3>Adding a User</h3>
+  <ol class="steps">
+    <li>Click <strong>Add User</strong>.</li>
+    <li>Fill in email, username, group, and initial password.</li>
+    <li>Set status to <strong>Active</strong> for the user to be able to log in.</li>
+    <li>Click <strong>Save</strong>.</li>
+  </ol>
+
+  <h3>Editing a User</h3>
+  <p>Click <strong>Edit</strong> on any row. You can update email, username, group, status, and set a new password (leave password blank to keep the current one).</p>
+
+  <h3>Deactivating a User</h3>
+  <p>Set <strong>Status</strong> to <em>Inactive</em> to prevent login without deleting the account.</p>
+
+  <!-- ── 10. Admin — Groups ────────────────────────────────────────── -->
+  <h2 id="admin-groups"><span class="icon">👥</span> Administration — Groups</h2>
+  <p>
+    Groups are collections of roles. Assigning a user to a group gives them all the permissions attached to the group's roles.
+  </p>
+
+  <h3>Creating a Group</h3>
+  <ol class="steps">
+    <li>Click <strong>Add Group</strong>.</li>
+    <li>Enter a <strong>Name</strong>.</li>
+    <li>Select one or more <strong>Roles</strong> to attach to the group.</li>
+    <li>Click <strong>Save</strong>.</li>
+  </ol>
+
+  <h3>Typical Group Setup</h3>
+  <table>
+    <thead><tr><th>Group</th><th>Suggested Roles</th></tr></thead>
+    <tbody>
+      <tr><td>Administrator</td><td>admin-full (all permissions)</td></tr>
+      <tr><td>Trader</td><td>trader-standard (trades:read, trades:write, dashboard:read)</td></tr>
+      <tr><td>Viewer</td><td>viewer (dashboard:read, trades:read)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── 11. Admin — Roles ─────────────────────────────────────────── -->
+  <h2 id="admin-roles"><span class="icon">🛡</span> Administration — Roles</h2>
+  <p>Roles hold the actual permission strings. A role can have one or more permissions, entered as a comma-separated list.</p>
+
+  <h3>Creating a Role</h3>
+  <ol class="steps">
+    <li>Click <strong>Add Role</strong>.</li>
+    <li>Enter a <strong>Name</strong>.</li>
+    <li>Enter <strong>Permissions</strong> as a comma-separated list (see the reference table below).</li>
+    <li>Click <strong>Save</strong>.</li>
+  </ol>
+
+  <!-- ── 12. Permissions Reference ────────────────────────────────── -->
+  <h2 id="permissions"><span class="icon">🔒</span> Permissions Reference</h2>
+  <table>
+    <thead><tr><th>Permission</th><th>What it grants</th></tr></thead>
+    <tbody>
+      <tr><td><code>users:manage</code></td><td>Create, edit, and manage users, groups, and roles. Access the Administration section.</td></tr>
+      <tr><td><code>trades:read</code></td><td>View the trade list and all trade details.</td></tr>
+      <tr><td><code>trades:write</code></td><td>Create and edit trades.</td></tr>
+      <tr><td><code>trades:delete</code></td><td>Delete trades.</td></tr>
+      <tr><td><code>audit:read</code></td><td>View the audit trail.</td></tr>
+      <tr><td><code>dashboard:read</code></td><td>View the performance dashboard.</td></tr>
+      <tr><td><code>master-data:manage</code></td><td>Add, edit, and delete tokens, trade types, and positions.</td></tr>
+      <tr><td><code>formulas:manage</code></td><td>Edit and save calculation formulas.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tip</div>
+    A standard trader typically needs: <code>trades:read</code>, <code>trades:write</code>, <code>trades:delete</code>, and <code>dashboard:read</code>. Grant <code>users:manage</code> only to administrators.
+  </div>
+
+  <!-- ── 13. Keyboard Shortcuts ────────────────────────────────────── -->
+  <h2 id="shortcuts"><span class="icon">⌨️</span> Keyboard Shortcuts</h2>
+  <table>
+    <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>N</kbd></td><td>Open the New Trade form (Trades page must be active).</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Save the currently open trade form.</td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:60px; padding-top:24px; border-top:1px solid #e2e8f0; font-size:0.82rem; color:#94a3b8;">
+    CryptoTracker User Guide · English · v1.0 · 
+    <a href="user-guide.hu.html" style="color:#3b82f6;">🇭🇺 Magyar verzió</a>
+  </div>
+
+</main>
+
+<script>
+  // Highlight active TOC item on scroll
+  const links = document.querySelectorAll('#sidebar a[href^="#"]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`#sidebar a[href="#${e.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  document.querySelectorAll('h2[id], h3[id]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

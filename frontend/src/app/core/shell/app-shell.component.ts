@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
+import { LanguageService } from '../services/language.service';
 import { LanguageToggleComponent } from './language-toggle.component';
 
 @Component({
@@ -11,7 +12,12 @@ import { LanguageToggleComponent } from './language-toggle.component';
 })
 export class AppShellComponent {
   readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
+
+  get userGuideUrl(): string {
+    return `/user-guide.${this.languageService.language()}.html`;
+  }
 
   logout(): void {
     this.authService.logout();

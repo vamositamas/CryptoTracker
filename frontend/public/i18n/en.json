@@ -25,10 +25,12 @@
       "audit": "Audit Trail",
       "masterData": "Master Data",
       "formulas": "Formulas",
+      "profile": "My Profile",
       "admin": "Administration",
       "adminUsers": "Users",
       "adminGroups": "Groups",
-      "adminRoles": "Roles"
+      "adminRoles": "Roles",
+      "userGuide": "User Guide"
     }
   },
   "dashboard": {
@@ -273,6 +275,7 @@
     "login": "Crypto Tracker Login",
     "register": "Create Account",
     "dashboard": "Dashboard",
+    "profile": "My Profile",
     "trades": "Trades",
     "audit": "Audit Trail",
     "masterData": "Master Data",
@@ -442,6 +445,31 @@
     "errors": {
       "loginFailed": "Invalid email or password",
       "registerFailed": "Registration failed. Please try again."
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "description": "Update your own account details. Changes are applied immediately.",
+    "fields": {
+      "email": "Email",
+      "username": "Username",
+      "newPassword": "New Password"
+    },
+    "hints": {
+      "passwordOptional": "Leave password empty if you do not want to change it."
+    },
+    "actions": {
+      "save": "Save Profile",
+      "saving": "Saving..."
+    },
+    "success": {
+      "saved": "Profile updated successfully."
+    },
+    "errors": {
+      "saveFailed": "Failed to update profile. Please try again."
+    },
+    "validation": {
+      "passwordMin": "Password must be at least 8 characters."
     }
   },
   "admin": {

@@ -87,14 +87,28 @@
     }
   </ul>
 
-  <div class="px-4 pb-4">
+  <div class="px-4 pb-4 space-y-3">
+    <a
+      [href]="userGuideUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+      [attr.aria-label]="'shell.nav.userGuide' | translate"
+    >
+      <span aria-hidden="true">📖</span>
+      {{ 'shell.nav.userGuide' | translate }}
+    </a>
     <app-language-toggle />
   </div>
 
   <!-- Sidebar footer — current user + logout -->
   <div class="px-4 py-4 border-t border-gray-800 flex flex-col gap-1">
     @if (authService.currentUser()) {
-      <span class="text-sm text-gray-300 truncate">{{ authService.currentUser()?.username }}</span>
+      <a
+        routerLink="/profile"
+        class="text-sm text-gray-300 truncate hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-900"
+        [attr.aria-label]="'shell.nav.profile' | translate"
+      >{{ authService.currentUser()?.username }}</a>
       <button
         type="button"
         (click)="logout()"

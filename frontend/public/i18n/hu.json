@@ -25,10 +25,12 @@
       "audit": "Auditnapló",
       "masterData": "Törzsadatok",
       "formulas": "Képletek",
+      "profile": "Saját profil",
       "admin": "Adminisztráció",
       "adminUsers": "Felhasználók",
       "adminGroups": "Csoportok",
-      "adminRoles": "Szerepkörök"
+      "adminRoles": "Szerepkörök",
+      "userGuide": "Felhasználói kézikönyv"
     }
   },
   "dashboard": {
@@ -273,6 +275,7 @@
     "login": "Bejelentkezés",
     "register": "Fiók létrehozása",
     "dashboard": "Irányítópult",
+    "profile": "Saját profil",
     "trades": "Kötések",
     "audit": "Auditnapló",
     "masterData": "Törzsadatok",
@@ -441,6 +444,31 @@
     "errors": {
       "loginFailed": "Érvénytelen e-mail vagy jelszó",
       "registerFailed": "A regisztráció nem sikerült. Kérjük, próbálja újra."
+    }
+  },
+  "profile": {
+    "title": "Saját profil",
+    "description": "Frissítse saját fiókadatait. A változások azonnal érvényesek.",
+    "fields": {
+      "email": "E-mail",
+      "username": "Felhasználónév",
+      "newPassword": "Új jelszó"
+    },
+    "hints": {
+      "passwordOptional": "Hagyja üresen a jelszó mezőt, ha nem szeretné módosítani."
+    },
+    "actions": {
+      "save": "Profil mentése",
+      "saving": "Mentés..."
+    },
+    "success": {
+      "saved": "A profil sikeresen frissült."
+    },
+    "errors": {
+      "saveFailed": "Nem sikerült frissíteni a profilt. Próbálja újra."
+    },
+    "validation": {
+      "passwordMin": "A jelszónak legalább 8 karakteresnek kell lennie."
     }
   },
   "admin": {

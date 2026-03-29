@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoTracker — Felhasználói kézikönyv</title>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      left: 0; top: 0;
+      width: 260px;
+      height: 100vh;
+      overflow-y: auto;
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 24px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 100;
+    }
+    #sidebar .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      padding: 0 8px 16px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+    #sidebar .brand span { color: #60a5fa; }
+    #sidebar .toc-section {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      padding: 12px 8px 4px;
+    }
+    #sidebar a {
+      display: block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    #sidebar a:hover { background: #1e293b; color: #e2e8f0; }
+    #sidebar a.active { background: #1e3a5f; color: #93c5fd; font-weight: 600; }
+    .flag-link {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid #1e293b;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .flag-link a { color: #60a5fa; font-weight: 500; }
+
+    /* ── Content ───────────────────────────────────────────────── */
+    main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 48px 56px 80px;
+      max-width: 900px;
+    }
+
+    /* ── Typography ────────────────────────────────────────────── */
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 1.05rem;
+      color: #64748b;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .icon { font-size: 1.3rem; }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e40af;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+    p { margin-bottom: 14px; color: #334155; }
+    ul, ol { padding-left: 20px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; color: #334155; }
+    strong { color: #0f172a; }
+    code {
+      background: #e2e8f0;
+      color: #7c3aed;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.88em;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+
+    /* ── Hero banner ───────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 60%, #1d4ed8 100%);
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 48px;
+      color: #fff;
+    }
+    .hero h1 { color: #fff; margin-bottom: 8px; }
+    .hero .subtitle { color: #bfdbfe; margin-bottom: 0; }
+    .hero .version {
+      display: inline-block;
+      margin-top: 16px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #dbeafe;
+    }
+
+    /* ── Cards & callouts ──────────────────────────────────────── */
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 20px 0;
+    }
+    .info-box.tip {
+      background: #f0fdf4;
+      border-left-color: #22c55e;
+    }
+    .info-box.warning {
+      background: #fffbeb;
+      border-left-color: #f59e0b;
+    }
+    .info-box .label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .info-box.tip .label { color: #16a34a; }
+    .info-box.warning .label { color: #b45309; }
+    .info-box .label { color: #2563eb; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card .card-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .card p { font-size: 0.85rem; margin-bottom: 0; color: #64748b; }
+
+    /* ── Table ─────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    thead th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8fafc; }
+
+    /* ── Badges ────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-purple { background: #f3e8ff; color: #7e22ce; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+
+    /* ── Step list ─────────────────────────────────────────────── */
+    .steps { list-style: none; padding: 0; counter-reset: step-counter; margin: 20px 0; }
+    .steps li {
+      padding: 14px 14px 14px 58px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      position: relative;
+      counter-increment: step-counter;
+    }
+    .steps li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: #1d4ed8;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    /* ── Keyboard shortcut ─────────────────────────────────────── */
+    kbd {
+      display: inline-block;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.8rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: #334155;
+    }
+
+    /* ── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      main { margin-left: 0; padding: 24px 20px 60px; }
+    }
+
+    /* ── Print ─────────────────────────────────────────────────── */
+    @media print {
+      #sidebar { display: none; }
+      main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Oldalsáv / Tartalomjegyzék ────────────────────────────────── -->
+<nav id="sidebar" aria-label="Tartalomjegyzék">
+  <div class="brand"><span>Crypto</span>Tracker — Kézikönyv</div>
+
+  <div class="toc-section">Első lépések</div>
+  <a href="#attekintes">Áttekintés</a>
+  <a href="#belepes">Bejelentkezés és regisztráció</a>
+  <a href="#navigacio">Navigáció</a>
+
+  <div class="toc-section">Funkciók</div>
+  <a href="#iranyitopult">Irányítópult</a>
+  <a href="#kotesek">Kötések</a>
+  <a href="#torzs">Törzsadatok</a>
+  <a href="#keplet">Képletek</a>
+
+  <div class="toc-section">Adminisztráció</div>
+  <a href="#auditnaplo">Auditnapló</a>
+  <a href="#admin-felhasznalok">Felhasználók</a>
+  <a href="#admin-csoportok">Csoportok</a>
+  <a href="#admin-szerepkorok">Szerepkörök és jogosultságok</a>
+
+  <div class="toc-section">Referencia</div>
+  <a href="#jogosultsagok">Jogosultságok referencia</a>
+  <a href="#billentyuk">Billentyűparancsok</a>
+
+  <div class="flag-link">
+    🇬🇧 <a href="user-guide.en.html">English version</a>
+  </div>
+</nav>
+
+<!-- ─── Fő tartalom ───────────────────────────────────────────────── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>CryptoTracker</h1>
+    <p class="subtitle">Teljes felhasználói kézikönyv — minden, amit a kriptó kötései nyomon követéséhez, elemzéséhez és kezeléséhez tudni kell.</p>
+    <span class="version">1.0 verzió · Magyar</span>
+  </div>
+
+  <!-- ── 1. Áttekintés ──────────────────────────────────────────────── -->
+  <h2 id="attekintes"><span class="icon">📋</span> Áttekintés</h2>
+  <p>
+    A <strong>CryptoTracker</strong> egy webalapú platform, amelyet egyéni kereskedők és csapatok számára fejlesztettünk, akik strukturált, adatvezérelt rálátást szeretnének a kriptovaluta kereskedési tevékenységükre. Az alkalmazás minden kötést rögzít, a nyereséget/veszteséget automatikusan kiszámolja testreszabható képletek alapján, és részletes elemzéseket biztosít.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">📊 Irányítópult</div>
+      <p>KPI kártyák, havi diagramok, token rangsorok és hétköznapi teljesítmény áttekintő.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Kötések</div>
+      <p>Kötések rögzítése, szerkesztése, szűrése és importálása. A nettó profit automatikusan számolódik.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂 Törzsadatok</div>
+      <p>Közös referencialisták tokenekhez, kötéstípusokhoz és pozíciókhoz az egész csapat számára.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔢 Képletek</div>
+      <p>Testreszabható számítási képletek a profithoz, költséghez és napi mutatókhoz — kódolás nélkül.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Auditnapló</div>
+      <p>Megváltoztathatatlan napló minden létrehozási, módosítási és törlési műveletről.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Adminisztráció</div>
+      <p>Felhasználó-, csoport- és szerepkörkezelés részletes jogosultság-szabályozással.</p>
+    </div>
+  </div>
+
+  <!-- ── 2. Bejelentkezés és regisztráció ──────────────────────────── -->
+  <h2 id="belepes"><span class="icon">🔑</span> Bejelentkezés és regisztráció</h2>
+
+  <h3>Bejelentkezés</h3>
+  <ol class="steps">
+    <li>Nyissa meg az alkalmazást böngészőjében. A rendszer automatikusan átirányítja a bejelentkezési oldalra.</li>
+    <li>Adja meg az <strong>e-mail-címét</strong> és <strong>jelszavát</strong>.</li>
+    <li>Kattintson a <strong>Bejelentkezés</strong> gombra. Sikeres bejelentkezés után az irányítópultra kerül.</li>
+  </ol>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Megjegyzés</div>
+    Ha a bejelentkezés sikertelen, ellenőrizze az e-mail-címét és jelszavát. Ha nem tud hozzáférni fiókjához, vegye fel a kapcsolatot a rendszergazdával.
+  </div>
+
+  <h3>Fiók létrehozása</h3>
+  <ol class="steps">
+    <li>A bejelentkezési oldalon kattintson a <strong>„Regisztráció"</strong> hivatkozásra alul.</li>
+    <li>Adja meg az <strong>e-mail-címét</strong>, <strong>felhasználónevét</strong> és egy <strong>jelszót</strong> (legalább 8 karakter).</li>
+    <li>A felhasználónévnek <em>meg kell egyeznie</em> a rendszergazda által konfigurált kereskedői adatmappa nevével.</li>
+    <li>Kattintson a <strong>Fiók létrehozása</strong> gombra. A rendszer automatikusan bejelentkezteti.</li>
+  </ol>
+
+  <h3>Kereskedői profil váltása</h3>
+  <p>
+    Ha fiókjához több kereskedői profil is tartozik, bejelentkezés után megjelenik egy profilválasztó.
+    Válassza ki a kívánt profilt és erősítse meg a választást.
+  </p>
+
+  <h3>Kijelentkezés</h3>
+  <p>Kattintson az oldalsáv alján látható felhasználónevére, majd válassza a <strong>Kijelentkezés</strong> lehetőséget.</p>
+
+  <!-- ── 3. Navigáció ──────────────────────────────────────────────── -->
+  <h2 id="navigacio"><span class="icon">🧭</span> Navigáció</h2>
+  <p>
+    Az alkalmazás rögzített <strong>bal oldali sávot</strong> használ a navigációhoz. Kattintson bármelyik elemre a megfelelő részhez való ugráshoz.
+    Az aktív oldal kék színnel ki van emelve. Az oldalsáv alján:
+  </p>
+  <ul>
+    <li><strong>Nyelvváltó</strong> — bármikor válthat az angol (EN) és a magyar (HU) nyelvek között.</li>
+    <li><strong>Felhasználóneve</strong> — jelzi a jelenleg bejelentkezett felhasználót.</li>
+    <li><strong>Kijelentkezés</strong> — munkamenetének befejezése.</li>
+  </ul>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tipp</div>
+    A nyelvi beállítás munkamenetek között megmarad. Egyszer váltson, az alkalmazás emlékezni fog a választásra.
+  </div>
+
+  <!-- ── 4. Irányítópult ───────────────────────────────────────────── -->
+  <h2 id="iranyitopult"><span class="icon">📊</span> Irányítópult</h2>
+  <p>
+    Az irányítópult az Ön teljesítményének összefoglaló nézete. Az összes rögzített kötésből kulcsteljesítmény-mutatókat (KPI), diagramokat és részletezéseket aggregál.
+  </p>
+
+  <h3>Nézetek</h3>
+  <p>A felső <strong>Nézet</strong> legördülővel válthat:</p>
+  <ul>
+    <li><strong>Minden adat</strong> — összesített statisztikák a teljes kereskedési előzmény alapján.</li>
+    <li><strong>Kiválasztott év</strong> — válasszon egy adott évet a fókuszált nézet megjelenítéséhez.</li>
+  </ul>
+
+  <h3>KPI kártyák — Összegzés</h3>
+  <table>
+    <thead><tr><th>KPI</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Összes kötés</strong></td><td>A rögzített kötések teljes száma.</td></tr>
+      <tr><td><strong>Összes nettó profit</strong></td><td>Az összes kötés nettó profitjának összege (USDT).</td></tr>
+      <tr><td><strong>Legjobb egyedi kötés</strong></td><td>A legmagasabb nettó profit egyetlen kötésen.</td></tr>
+      <tr><td><strong>Találati arány</strong></td><td>Profittal záruló kötések százaléka.</td></tr>
+      <tr><td><strong>Összesített profit %</strong></td><td>A befektetett tőkéhez viszonyított hozam összesen.</td></tr>
+      <tr><td><strong>Átlagos profit %</strong></td><td>Kötésenkénti átlagos hozam.</td></tr>
+      <tr><td><strong>Átlagos napi profit %</strong></td><td>Napi átlagos hozam (tartási időszak alapján normalizálva).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Kötés megoszlás</h3>
+  <table>
+    <thead><tr><th>Mutató</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Nyerő / vesztes arány</strong></td><td>Nyerő kötések száma vs. vesztes kötések száma.</td></tr>
+      <tr><td><strong>Short / Long arány</strong></td><td>Short pozíciók száma vs. long pozíciók száma.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Szélsőértékek</h3>
+  <table>
+    <thead><tr><th>KPI</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Legjobb token</strong></td><td>A legtöbb összesített nettó profitot hozó token.</td></tr>
+      <tr><td><strong>Max napi profit %</strong></td><td>A legjobb napi hozam elért értéke.</td></tr>
+      <tr><td><strong>Min napi profit %</strong></td><td>A legrosszabb napi hozam.</td></tr>
+      <tr><td><strong>Max profit / kötés %</strong></td><td>Egyetlen kötés legjobb százalékos hozama.</td></tr>
+      <tr><td><strong>Max veszteség / kötés %</strong></td><td>Egyetlen kötés legnagyobb százalékos vesztesége.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Token teljesítmény táblázat</h3>
+  <p>
+    Részletes bontás tokenenként — kötések száma, nettó profit USDT-ben, nettó profit% és találati arány.
+    Segít azonosítani, mely eszközök hozzák a legjobb hozamot.
+  </p>
+
+  <h3>Hétköznap teljesítmény</h3>
+  <p>Összesített teljesítmény a hét napjai szerint (hétfő–vasárnap). Segít azonosítani, hogy bizonyos napok nyereségesebbek-e.</p>
+
+  <h3>Havi teljesítmény táblázat és diagram</h3>
+  <p>
+    Hónapról hónapra bontott áttekintés: kötések száma, nettó profit, profit%, átlagos napi profit%, havi delta% és találati arány.
+    Évek között az <strong>Előző</strong> / <strong>Következő</strong> gombokkal lapozhat.
+    A táblázat mögötti oszlopdiagram egy pillantásra vizualizálja a havi eredményeket.
+  </p>
+
+  <!-- ── 5. Kötések ────────────────────────────────────────────────── -->
+  <h2 id="kotesek"><span class="icon">📈</span> Kötések</h2>
+  <p>A Kötések oldal az összes kereskedési tevékenység rögzítésének és kezelésének helye.</p>
+
+  <h3>Kötések listája</h3>
+  <p>A táblázat az összes rögzített kötést mutatja a következő oszlopokkal:</p>
+  <table>
+    <thead><tr><th>Oszlop</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td>Zárás dátuma</td><td>A kötés zárásának dátuma.</td></tr>
+      <tr><td>Token</td><td>A kereskedett kriptovaluta (pl. BTC, ETH).</td></tr>
+      <tr><td>Pozíció</td><td>A pozíció típusa (pl. Spot, Futures).</td></tr>
+      <tr><td>Típus</td><td>Irány — Long vagy Short.</td></tr>
+      <tr><td>Költség</td><td>Bróker/tőzsde díja USDT-ben.</td></tr>
+      <tr><td>Tőkeáttétel</td><td>Az alkalmazott tőkeáttétel szorzója.</td></tr>
+      <tr><td>Mennyiség</td><td>A kötés volumene USDT-ben.</td></tr>
+      <tr><td>Vételi ár</td><td>Belépési ár USDT-ben.</td></tr>
+      <tr><td>Eladási ár</td><td>Kilépési ár USDT-ben.</td></tr>
+      <tr><td>Nettó profit</td><td>Számított nettó profit USDT-ben (automatikusan számolódik).</td></tr>
+      <tr><td>Profit %</td><td>Százalékos hozam (automatikusan számolódik).</td></tr>
+      <tr><td>Napi nettó profit</td><td>Tartott napokra normalizált nettó profit (automatikusan számolódik).</td></tr>
+      <tr><td>Napi profit %</td><td>Napi százalékos hozam (automatikusan számolódik).</td></tr>
+      <tr><td>Eredmény</td><td><span class="badge badge-green">Nyerő</span> vagy <span class="badge badge-orange">Vesztes</span>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Új kötés hozzáadása</h3>
+  <ol class="steps">
+    <li>Kattintson az <strong>+ Új kötés</strong> gombra (jobb felül) vagy nyomja meg az <kbd>N</kbd> billentyűt.</li>
+    <li>Válassza ki a <strong>Tokent</strong>, a <strong>Pozíciót</strong> és a <strong>Kötés típusát</strong> a legördülőkből.</li>
+    <li>Adja meg a <strong>Bróker költséget</strong>, <strong>Tőkeáttételt</strong>, <strong>Mennyiséget</strong>, <strong>Vételi árat</strong>, <strong>Eladási árat</strong> és a <strong>Zárás dátumát</strong>.</li>
+    <li>Kattintson a <strong>Kötés mentése</strong> gombra vagy nyomja meg a <kbd>Ctrl</kbd>+<kbd>Enter</kbd> billentyűkombinációt.</li>
+  </ol>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Mielőtt elkezdene</div>
+    A tokeneket, pozíciókat és kötéstípusokat előbb be kell állítani a <a href="#torzs"><strong>Törzsadatoknál</strong></a>, mielőtt kötéseket rögzíthet.
+    Ha valamely legördülő üres, kérje meg a rendszergazdát a referenciaelemek beállítására.
+  </div>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tipp</div>
+    Az űrlap figyelmeztet, ha a tőkeáttétel meghaladja a 100×-os értéket, vagy ha a vételi ár szokatlanul alacsony — mentés előtt vizsgálja meg ezeket.
+  </div>
+
+  <h3>Kötés szerkesztése</h3>
+  <p>
+    Kattintson a <strong>Szerkesztés</strong> ikonra (ceruza) bármelyik soron. A sor inline szerkesztővé alakul — módosítsa az értékeket, majd kattintson a <strong>Mentés</strong> gombra.
+    A <strong>Mégse</strong> gombra kattintva elveti a módosításokat.
+  </p>
+
+  <h3>Kötés törlése</h3>
+  <p>
+    Kattintson a <strong>Törlés</strong> ikonra (kuka) bármelyik soron. Megjelenik egy megerősítő üzenet. Az OK gombra kattintva a kötés véglegesen törlődik.
+  </p>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Figyelmeztetés</div>
+    A törlés végleges. Az auditnapló rögzíti a törlési műveletet, de a kötés adatai nem állíthatók vissza.
+  </div>
+
+  <h3>Kötések szűrése</h3>
+  <p>A kötéslistán felül lévő <strong>Szűrők</strong> panellel szűkítheti a találatokat:</p>
+  <ul>
+    <li><strong>Token</strong> — konkrét token kiválasztása vagy névkeresés.</li>
+    <li><strong>Pozíció</strong> — szűrés pozíciótípus szerint.</li>
+    <li><strong>Típus</strong> — szűrés kötéstípus szerint (Long/Short).</li>
+    <li><strong>Eredmény</strong> — csak nyerő vagy csak vesztes kötések megjelenítése.</li>
+    <li><strong>Dátumtartomány</strong> — „Ettől" és „Eddig" dátum beállítása.</li>
+  </ul>
+  <p>Kattintson a <strong>Szűrők törlése</strong> gombra az összes aktív szűrő eltávolításához.</p>
+
+  <h3>Összefoglaló sáv</h3>
+  <p>A táblázat felett az összefoglaló sáv mutatja az <strong>Összes kötés</strong>, <strong>Nyerők</strong>, <strong>Vesztesek</strong> és <strong>Ma</strong> számát — mindig az aktuálisan alkalmazott szűrőt tükrözve.</p>
+
+  <h3>Kötések importálása Excelből</h3>
+  <ol class="steps">
+    <li>Kattintson az <strong>Excel import</strong> gombra a kötéslista fejlécében.</li>
+    <li>Opcionálisan töltse le a <strong>sablont</strong> a szükséges oszlopszerkezet megtekintéséhez.</li>
+    <li>Válassza ki az Excel fájlt. Az első munkalap kerül beolvasásra; az oszlopoknak meg kell felelniük a sablon szerkezetének.</li>
+    <li>Sikeres import után egy értesítés mutatja a hozzáadott kötések számát.</li>
+  </ol>
+
+  <!-- ── 6. Törzsadatok ─────────────────────────────────────────────── -->
+  <h2 id="torzs"><span class="icon">🗂</span> Törzsadatok</h2>
+  <p>
+    A Törzsadatok tartalmazzák a kötések rögzítésekor használt közös referencialistákat.
+    Az itt végzett módosítások azonnal láthatók az egész csapat számára.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Szükséges jogosultság</div>
+    A törzsadatok kezeléséhez <code>master-data:manage</code> jogosultság szükséges.
+  </div>
+
+  <p>Három fül érhető el:</p>
+  <ul>
+    <li><strong>Tokenek</strong> — kriptovaluta szimbólumok (pl. <code>BTC</code>, <code>ETH</code>, <code>SOL</code>).</li>
+    <li><strong>Kötéstípusok</strong> — iránymegjelölők (pl. <code>Long</code>, <code>Short</code>).</li>
+    <li><strong>Pozíciók</strong> — piac típusok (pl. <code>Spot</code>, <code>Futures</code>, <code>Margin</code>).</li>
+  </ul>
+
+  <h3>Érték hozzáadása</h3>
+  <ol class="steps">
+    <li>Válassza ki a megfelelő fület (Tokenek, Kötéstípusok vagy Pozíciók).</li>
+    <li>Kattintson a <strong>Hozzáadás…</strong> gombra (pl. „Token hozzáadása").</li>
+    <li>Adja meg az érték nevét, majd kattintson a <strong>Mentés</strong> gombra.</li>
+  </ol>
+
+  <h3>Érték szerkesztése vagy törlése</h3>
+  <p>
+    Használja a <strong>Szerkesztés</strong> vagy <strong>Törlés</strong> ikonokat bármelyik lista soron.
+    Az érték törlése <em>nem</em> törli azokat a korábbi kötéseket, amelyek arra hivatkoznak — csupán az új kötéseknél eltávolítja a kiválasztási listáról.
+  </p>
+
+  <!-- ── 7. Képletek ───────────────────────────────────────────────── -->
+  <h2 id="keplet"><span class="icon">🔢</span> Képletek</h2>
+  <p>
+    A Képletek oldalon meghatározhatja, hogyan számolódjanak a kereskedési mutatók, például a nettó profit, a profit% és a napi hozamok.
+    A képletek <strong>expr-eval</strong> kifejezésszintaxist használnak, és hivatkozhatnak a kötés bemeneti mezőire, illetve a sorban felettük definiált képletmezőkre.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Szükséges jogosultság</div>
+    A képletek kezeléséhez <code>formulas:manage</code> jogosultság szükséges.
+  </div>
+
+  <h3>Beépített változók</h3>
+  <table>
+    <thead><tr><th>Változó</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td><code>buyPrice</code></td><td>Kötés belépési ára (USDT).</td></tr>
+      <tr><td><code>sellPrice</code></td><td>Kötés kilépési ára (USDT).</td></tr>
+      <tr><td><code>volume</code></td><td>Kötés volumene (USDT).</td></tr>
+      <tr><td><code>leverage</code></td><td>Tőkeáttétel szorzója.</td></tr>
+      <tr><td><code>brokerCost</code></td><td>Bróker/tőzsde díja (USDT).</td></tr>
+      <tr><td><code>closeDate</code></td><td>Zárás dátuma ISO formátumban.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Kötelező képletek</h3>
+  <p>
+    Egyes képletek <span class="badge badge-blue">Kötelező</span> jelöléssel vannak ellátva — ezeket nem lehet törölni, mert az alkalmazás más részei ezektől függnek.
+    Módosíthatja a kifejezéseket, de mentés előtt győződjön meg arról, hogy a képlet érvényes marad.
+  </p>
+
+  <h3>Egyéni képlet hozzáadása</h3>
+  <ol class="steps">
+    <li>Kattintson a <strong>Képlet hozzáadása</strong> gombra.</li>
+    <li>Adjon meg egy egyedi <strong>mezőnevet</strong> (betűk, számok, aláhúzás — betűvel kell kezdődjön).</li>
+    <li>Írja meg a <strong>kifejezést</strong> a fent felsorolt változók vagy a felette definiált képletmező-nevek felhasználásával.</li>
+    <li>Figyelje az élő <strong>előnézet</strong> státuszát — megmutatja, hogy a kifejezés érvényes-e mentés előtt.</li>
+    <li>Kattintson a <strong>Képletek mentése</strong> gombra a módosítások alkalmazásához az egész csapat számára.</li>
+  </ol>
+
+  <div class="info-box tip">
+    <div class="label">💡 Példa</div>
+    Long kötés bruttó profitjának kiszámítása: <code>(sellPrice - buyPrice) * volume / buyPrice * leverage - brokerCost</code>
+  </div>
+
+  <div class="info-box warning">
+    <div class="label">⚠ Figyelem</div>
+    Egy kötelező képlet módosítása azonnal hatással van minden kötés számítására. Az előnézetben alaposan tesztelje, mielőtt menti.
+  </div>
+
+  <!-- ── 8. Auditnapló ─────────────────────────────────────────────── -->
+  <h2 id="auditnaplo"><span class="icon">🔍</span> Auditnapló</h2>
+  <p>
+    Az auditnapló egy megváltoztathatatlan, kronológikus naplója minden kötésen elvégzett <span class="badge badge-green">LÉTREHOZÁS</span>, <span class="badge badge-blue">MÓDOSÍTÁS</span> és <span class="badge badge-orange">TÖRLÉS</span> műveletnek.
+    Teljes elszámoltathatóságot és változástörténetet biztosít.
+  </p>
+
+  <div class="info-box">
+    <div class="label">ℹ Szükséges jogosultság</div>
+    Az auditnapló megtekintéséhez <code>audit:read</code> jogosultság szükséges (általában rendszergazdáknak adják meg).
+  </div>
+
+  <h3>Auditnapló oszlopai</h3>
+  <table>
+    <thead><tr><th>Oszlop</th><th>Leírás</th></tr></thead>
+    <tbody>
+      <tr><td>Időbélyeg</td><td>A művelet pontos dátuma és időpontja.</td></tr>
+      <tr><td>Kereskedő</td><td>Az érintett kereskedői profil.</td></tr>
+      <tr><td>Művelet</td><td>LÉTREHOZÁS, MÓDOSÍTÁS vagy TÖRLÉS.</td></tr>
+      <tr><td>Kötés azonosító</td><td>A kötés belső azonosítója.</td></tr>
+      <tr><td>Mező</td><td>Melyik mező változott meg (MÓDOSÍTÁS műveletnél).</td></tr>
+      <tr><td>Régi érték</td><td>A változtatás előtti érték.</td></tr>
+      <tr><td>Új érték</td><td>A változtatás utáni érték.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Auditnapló szűrése</h3>
+  <ul>
+    <li><strong>Művelet</strong> — szűrés LÉTREHOZÁS, MÓDOSÍTÁS vagy TÖRLÉS szerint.</li>
+    <li><strong>Dátumtartomány</strong> — „Dátumtól" és/vagy „Dátumig" megadása.</li>
+  </ul>
+  <p>Kattintson a <strong>Szűrők törlése</strong> gombra a nézet visszaállításához.</p>
+
+  <!-- ── 9. Adminisztráció — Felhasználók ──────────────────────────── -->
+  <h2 id="admin-felhasznalok"><span class="icon">👤</span> Adminisztráció — Felhasználók</h2>
+
+  <div class="info-box">
+    <div class="label">ℹ Szükséges jogosultság</div>
+    Minden adminisztrációs oldalhoz <code>users:manage</code> jogosultság szükséges.
+  </div>
+
+  <p>A Felhasználók oldal felsorolja az összes regisztrált fiókot. Minden felhasználónál megtekinthető és beállítható:</p>
+  <ul>
+    <li><strong>E-mail</strong> — bejelentkezési e-mail-cím.</li>
+    <li><strong>Felhasználónév</strong> — megjelenített név és kereskedői adatmappa hivatkozás.</li>
+    <li><strong>Csoport</strong> — a felhasználó csoportja (meghatározza a szerepköröket és jogosultságokat).</li>
+    <li><strong>Állapot</strong> — <span class="badge badge-green">Aktív</span> vagy <span class="badge badge-gray">Inaktív</span>.</li>
+  </ul>
+
+  <h3>Felhasználó hozzáadása</h3>
+  <ol class="steps">
+    <li>Kattintson a <strong>Felhasználó hozzáadása</strong> gombra.</li>
+    <li>Töltse ki az e-mail, felhasználónév, csoport és kezdeti jelszó mezőket.</li>
+    <li>Állítsa az állapotot <strong>Aktív</strong>ra, hogy a felhasználó be tudjon jelentkezni.</li>
+    <li>Kattintson a <strong>Mentés</strong> gombra.</li>
+  </ol>
+
+  <h3>Felhasználó szerkesztése</h3>
+  <p>Kattintson a <strong>Szerkesztés</strong> gombra bármelyik soron. Módosíthatja az e-mailt, felhasználónevet, csoportot, állapotot, és megadhat új jelszót (hagyja üresen a jelszó mezőt, ha nem szeretné megváltoztatni).</p>
+
+  <h3>Felhasználó deaktiválása</h3>
+  <p>Állítsa az <strong>Állapotot</strong> <em>Inaktív</em>ra, hogy megakadályozza a bejelentkezést a fiók törlése nélkül.</p>
+
+  <!-- ── 10. Adminisztráció — Csoportok ────────────────────────────── -->
+  <h2 id="admin-csoportok"><span class="icon">👥</span> Adminisztráció — Csoportok</h2>
+  <p>
+    A csoportok szerepkörök gyűjteményei. Ha egy felhasználót egy csoporthoz rendel, megkapja a csoport összes szerepköréhez tartozó jogosultságot.
+  </p>
+
+  <h3>Csoport létrehozása</h3>
+  <ol class="steps">
+    <li>Kattintson a <strong>Csoport hozzáadása</strong> gombra.</li>
+    <li>Adjon meg egy <strong>Nevet</strong>.</li>
+    <li>Válasszon ki egy vagy több <strong>Szerepkört</strong> a csoporthoz rendeléshez.</li>
+    <li>Kattintson a <strong>Mentés</strong> gombra.</li>
+  </ol>
+
+  <h3>Tipikus csoportbeállítás</h3>
+  <table>
+    <thead><tr><th>Csoport</th><th>Javasolt szerepkörök</th></tr></thead>
+    <tbody>
+      <tr><td>Adminisztrátor</td><td>admin-teljes (minden jogosultság)</td></tr>
+      <tr><td>Kereskedő</td><td>kereskedő-standard (trades:read, trades:write, dashboard:read)</td></tr>
+      <tr><td>Néző</td><td>néző (dashboard:read, trades:read)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── 11. Adminisztráció — Szerepkörök ─────────────────────────── -->
+  <h2 id="admin-szerepkorok"><span class="icon">🛡</span> Adminisztráció — Szerepkörök</h2>
+  <p>A szerepkörök tartalmazzák a tényleges jogosultság-karakterláncokat. Egy szerepkörnek egy vagy több jogosultsága lehet, vesszővel elválasztva megadva.</p>
+
+  <h3>Szerepkör létrehozása</h3>
+  <ol class="steps">
+    <li>Kattintson a <strong>Szerepkör hozzáadása</strong> gombra.</li>
+    <li>Adjon meg egy <strong>Nevet</strong>.</li>
+    <li>Adja meg a <strong>Jogosultságokat</strong> vesszővel elválasztott listaként (lásd az alábbi referencia táblázatot).</li>
+    <li>Kattintson a <strong>Mentés</strong> gombra.</li>
+  </ol>
+
+  <!-- ── 12. Jogosultságok referencia ─────────────────────────────── -->
+  <h2 id="jogosultsagok"><span class="icon">🔒</span> Jogosultságok referencia</h2>
+  <table>
+    <thead><tr><th>Jogosultság</th><th>Mit engedélyez</th></tr></thead>
+    <tbody>
+      <tr><td><code>users:manage</code></td><td>Felhasználók, csoportok és szerepkörök létrehozása, szerkesztése és kezelése. Hozzáférés az Adminisztráció szekcióhoz.</td></tr>
+      <tr><td><code>trades:read</code></td><td>A kötéslista és az összes kötés részleteinek megtekintése.</td></tr>
+      <tr><td><code>trades:write</code></td><td>Kötések létrehozása és szerkesztése.</td></tr>
+      <tr><td><code>trades:delete</code></td><td>Kötések törlése.</td></tr>
+      <tr><td><code>audit:read</code></td><td>Az auditnapló megtekintése.</td></tr>
+      <tr><td><code>dashboard:read</code></td><td>A teljesítmény irányítópult megtekintése.</td></tr>
+      <tr><td><code>master-data:manage</code></td><td>Tokenek, kötéstípusok és pozíciók hozzáadása, szerkesztése és törlése.</td></tr>
+      <tr><td><code>formulas:manage</code></td><td>Számítási képletek szerkesztése és mentése.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <div class="label">💡 Tipp</div>
+    Egy standard kereskedőnek általában szüksége van: <code>trades:read</code>, <code>trades:write</code>, <code>trades:delete</code> és <code>dashboard:read</code> jogosultságokra. A <code>users:manage</code> jogosultságot csak rendszergazdáknak adja meg.
+  </div>
+
+  <!-- ── 13. Billentyűparancsok ────────────────────────────────────── -->
+  <h2 id="billentyuk"><span class="icon">⌨️</span> Billentyűparancsok</h2>
+  <table>
+    <thead><tr><th>Billentyű</th><th>Művelet</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>N</kbd></td><td>Új kötés űrlap megnyitása (csak a Kötések oldalon).</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>A jelenleg nyitott kötésűrlap mentése.</td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:60px; padding-top:24px; border-top:1px solid #e2e8f0; font-size:0.82rem; color:#94a3b8;">
+    CryptoTracker Felhasználói kézikönyv · Magyar · 1.0 verzió · 
+    <a href="user-guide.en.html" style="color:#3b82f6;">🇬🇧 English version</a>
+  </div>
+
+</main>
+
+<script>
+  // Aktív tartalomjegyzék elem kiemelése görgetéskor
+  const links = document.querySelectorAll('#sidebar a[href^="#"]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`#sidebar a[href="#${e.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  document.querySelectorAll('h2[id], h3[id]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
