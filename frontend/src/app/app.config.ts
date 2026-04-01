@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
     ),
     ...provideTranslateHttpLoader({
       prefix: '/i18n/',
-      suffix: '.json',
+      suffix: '.json?v=20260401-2',
     }),
     { provide: TitleStrategy, useClass: I18nTitleStrategy },
     {

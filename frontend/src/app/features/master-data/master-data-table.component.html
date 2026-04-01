@@ -54,12 +54,29 @@
       @if (isAdding()) {
         <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-blue-100 bg-blue-50/50 px-4 py-4">
           <div class="space-y-2">
-            <input
-              [(ngModel)]="draftValue"
-              (keydown)="onEditorKeydown($event)"
-              [attr.placeholder]="config().fieldLabel | translate"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            />
+            @if (config().type === 'tokens') {
+              <div class="grid gap-2 md:grid-cols-2">
+                <input
+                  [(ngModel)]="draftSymbol"
+                  (keydown)="onEditorKeydown($event)"
+                  [attr.placeholder]="'masterData.fields.tokenSymbol' | translate"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
+                <input
+                  [(ngModel)]="draftName"
+                  (keydown)="onEditorKeydown($event)"
+                  [attr.placeholder]="'masterData.fields.tokenName' | translate"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
+              </div>
+            } @else {
+              <input
+                [(ngModel)]="draftValue"
+                (keydown)="onEditorKeydown($event)"
+                [attr.placeholder]="config().fieldLabel | translate"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              />
+            }
             @if (inlineError()) {
               <p class="text-xs text-red-500">{{ inlineError()! | translate }}</p>
             }
@@ -88,12 +105,29 @@
         <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-gray-100 px-4 py-4 last:border-b-0">
           @if (editingId() === entry.id) {
             <div class="space-y-2">
-              <input
-                [(ngModel)]="draftValue"
-                (keydown)="onEditorKeydown($event)"
-                [attr.placeholder]="config().fieldLabel | translate"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              />
+              @if (config().type === 'tokens') {
+                <div class="grid gap-2 md:grid-cols-2">
+                  <input
+                    [(ngModel)]="draftSymbol"
+                    (keydown)="onEditorKeydown($event)"
+                    [attr.placeholder]="'masterData.fields.tokenSymbol' | translate"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  />
+                  <input
+                    [(ngModel)]="draftName"
+                    (keydown)="onEditorKeydown($event)"
+                    [attr.placeholder]="'masterData.fields.tokenName' | translate"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  />
+                </div>
+              } @else {
+                <input
+                  [(ngModel)]="draftValue"
+                  (keydown)="onEditorKeydown($event)"
+                  [attr.placeholder]="config().fieldLabel | translate"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
+              }
               @if (inlineError()) {
                 <p class="text-xs text-red-500">{{ inlineError()! | translate }}</p>
               }

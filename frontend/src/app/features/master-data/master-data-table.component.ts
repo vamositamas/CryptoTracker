@@ -28,6 +28,8 @@ export class MasterDataTableComponent {
   readonly deleteConfirmId = signal<string | null>(null);
 
   draftValue = '';
+  draftSymbol = '';
+  draftName = '';
 
   readonly isAdding = computed(() => this.editingId() === NEW_ROW_ID);
 
@@ -77,19 +79,32 @@ export class MasterDataTableComponent {
     this.inlineError.set(null);
     this.deleteConfirmId.set(null);
     this.draftValue = '';
+    this.draftSymbol = '';
+    this.draftName = '';
   }
 
   startEdit(entry: MasterDataEntry): void {
     this.editingId.set(entry.id);
     this.inlineError.set(null);
     this.deleteConfirmId.set(null);
+    if (this.config().type === 'tokens') {
+      const token = entry as MasterDataToken;
+      this.draftSymbol = token.symbol ?? token.id;
+      this.draftName = token.name ?? token.symbol ?? token.id;
+      this.draftValue = '';
+      return;
+    }
     this.draftValue = this.displayValue(entry);
+    this.draftSymbol = '';
+    this.draftName = '';
   }
 
   cancelEdit(): void {
     this.editingId.set(null);
     this.inlineError.set(null);
     this.draftValue = '';
+    this.draftSymbol = '';
+    this.draftName = '';
   }
 
   openDeleteConfirm(entryId: string): void {
@@ -105,8 +120,21 @@ export class MasterDataTableComponent {
       return;
     }
 
+    const isTokens = this.config().type === 'tokens';
     const value = this.draftValue.trim();
-    if (!value) {
+    const symbol = this.draftSymbol.trim();
+    const name = this.draftName.trim();
+
+    if (isTokens) {
+      if (!symbol) {
+        this.inlineError.set('masterData.errors.tokenSymbolRequired');
+        return;
+      }
+      if (!name) {
+        this.inlineError.set('masterData.errors.tokenNameRequired');
+        return;
+      }
+    } else if (!value) {
       this.inlineError.set('masterData.errors.fieldRequired');
       return;
     }
@@ -117,14 +145,18 @@ export class MasterDataTableComponent {
 
     try {
       if (this.isAdding()) {
-        const created = await this.api.create(this.config().type, value);
+        const created = isTokens
+          ? await this.api.create(this.config().type, { symbol, name })
+          : await this.api.create(this.config().type, value);
         this.entries.update((entries) => [...entries, created]);
       } else {
         const currentId = this.editingId();
         if (!currentId) {
           return;
         }
-        const updated = await this.api.update(this.config().type, currentId, value);
+        const updated = isTokens
+          ? await this.api.update(this.config().type, currentId, { symbol, name })
+          : await this.api.update(this.config().type, currentId, value);
         this.entries.update((entries) => entries.map((entry) => entry.id === currentId ? updated : entry));
       }
       this.cancelEdit();

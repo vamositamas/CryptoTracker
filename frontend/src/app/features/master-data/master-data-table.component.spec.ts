@@ -77,11 +77,12 @@ describe('MasterDataTableComponent', () => {
     await fixture.whenStable();
 
     fixture.componentInstance.startAdd();
-    fixture.componentInstance.draftValue = 'ETH';
+    fixture.componentInstance.draftSymbol = 'ETH';
+    fixture.componentInstance.draftName = 'Ethereum';
     await fixture.componentInstance.saveEdit();
     fixture.detectChanges();
 
-    expect(apiMock.create).toHaveBeenCalledWith('tokens', 'ETH');
+    expect(apiMock.create).toHaveBeenCalledWith('tokens', { symbol: 'ETH', name: 'Ethereum' });
     expect(fixture.componentInstance.entries().some((entry) => entry.id === 'ETH')).toBe(true);
   });
 
@@ -96,7 +97,8 @@ describe('MasterDataTableComponent', () => {
     await fixture.whenStable();
 
     fixture.componentInstance.startAdd();
-    fixture.componentInstance.draftValue = 'BTC';
+    fixture.componentInstance.draftSymbol = 'BTC';
+    fixture.componentInstance.draftName = 'Bitcoin';
     await fixture.componentInstance.saveEdit();
     fixture.detectChanges();
 

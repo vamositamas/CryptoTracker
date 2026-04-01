@@ -1,6 +1,20 @@
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden h-full flex flex-col">
-  <div class="px-6 py-4 border-b border-gray-200">
-    <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.monthlyChart.title' | translate }}</h2>
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden h-full flex flex-col group">
+  <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-4 flex-wrap">
+    <h2 class="text-lg font-semibold text-gray-900 flex-1">{{ 'dashboard.monthlyChart.title' | translate }}</h2>
+    <div class="flex items-center gap-4 text-sm text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <label class="flex items-center gap-1.5 cursor-pointer" [title]="'dashboard.monthlyChart.barColorLabel' | translate">
+        <input type="color" [value]="barColor"
+               (input)="barColor = $any($event.target).value; onColorChange()"
+               class="w-6 h-6 rounded border-0 cursor-pointer p-0">
+        <span>{{ 'dashboard.monthlyChart.barColorLabel' | translate }}</span>
+      </label>
+      <label class="flex items-center gap-1.5 cursor-pointer" [title]="'dashboard.monthlyChart.lineColorLabel' | translate">
+        <input type="color" [value]="lineColor"
+               (input)="lineColor = $any($event.target).value; onColorChange()"
+               class="w-6 h-6 rounded border-0 cursor-pointer p-0">
+        <span>{{ 'dashboard.monthlyChart.lineColorLabel' | translate }}</span>
+      </label>
+    </div>
   </div>
 
   <div class="px-4 py-4 flex-1 relative" style="min-height: 300px;">

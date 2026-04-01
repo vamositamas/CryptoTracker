@@ -6,6 +6,8 @@ import {
   ViewChild,
   ElementRef,
   OnDestroy,
+  OnInit,
+  inject,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -22,6 +24,7 @@ import {
   type ChartConfiguration,
 } from 'chart.js';
 import { MonthlyData } from '../dashboard.model';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 Chart.register(
   BarController,
@@ -41,14 +44,29 @@ Chart.register(
   imports: [TranslatePipe],
   templateUrl: './monthly-chart.component.html',
 })
-export class MonthlyChartComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class MonthlyChartComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @Input() data: MonthlyData[] = [];
   @Input() selectedYear: number | null = null;
   @Input() loading = false;
 
+  barColor = '#86efac';
+  lineColor = '#f97316';
+
+  private readonly prefs = inject(PreferencesService);
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private chart: Chart | null = null;
+
+  async ngOnInit(): Promise<void> {
+    await this.prefs.load();
+    const colors = this.prefs.chartColors();
+    this.barColor = colors.bar;
+    this.lineColor = colors.line;
+    if (this.chart) {
+      this.applyColors();
+      this.chart.update();
+    }
+  }
 
   ngAfterViewInit(): void {
     this.buildChart();
@@ -64,6 +82,32 @@ export class MonthlyChartComponent implements AfterViewInit, OnChanges, OnDestro
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+  }
+
+  onColorChange(): void {
+    if (this.chart) {
+      this.applyColors();
+      this.chart.update();
+    }
+    void this.prefs.saveChartColors({ bar: this.barColor, line: this.lineColor });
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  private applyColors(): void {
+    if (!this.chart) return;
+    const bar = this.chart.data.datasets[0] as any;
+    bar.backgroundColor = this.hexToRgba(this.barColor, 0.85);
+    bar.borderColor = this.hexToRgba(this.barColor, 1);
+    const line = this.chart.data.datasets[1] as any;
+    line.borderColor = this.hexToRgba(this.lineColor, 1);
+    line.backgroundColor = this.hexToRgba(this.lineColor, 0.1);
+    line.pointBackgroundColor = this.hexToRgba(this.lineColor, 1);
   }
 
   private getLabelsAndData(): { labels: string[]; profitPct: number[]; dailyPct: number[] } {
@@ -114,8 +158,8 @@ export class MonthlyChartComponent implements AfterViewInit, OnChanges, OnDestro
             type: 'bar',
             label: 'Monthly profit %',
             data: profitPct,
-            backgroundColor: 'rgba(134, 239, 172, 0.85)',
-            borderColor: 'rgba(74, 222, 128, 1)',
+            backgroundColor: this.hexToRgba(this.barColor, 0.85),
+            borderColor: this.hexToRgba(this.barColor, 1),
             borderWidth: 1,
             yAxisID: 'y',
             order: 2,
@@ -124,11 +168,11 @@ export class MonthlyChartComponent implements AfterViewInit, OnChanges, OnDestro
             type: 'line',
             label: 'Average daily profit %',
             data: dailyPct,
-            borderColor: 'rgba(249, 115, 22, 1)',
-            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            borderColor: this.hexToRgba(this.lineColor, 1),
+            backgroundColor: this.hexToRgba(this.lineColor, 0.1),
             borderWidth: 2,
             pointRadius: 4,
-            pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+            pointBackgroundColor: this.hexToRgba(this.lineColor, 1),
             tension: 0.1,
             yAxisID: 'y1',
             order: 1,
@@ -188,6 +232,7 @@ export class MonthlyChartComponent implements AfterViewInit, OnChanges, OnDestro
     this.chart.data.labels = labels;
     this.chart.data.datasets[0].data = profitPct;
     this.chart.data.datasets[1].data = dailyPct;
+    this.applyColors();
     this.chart.update();
   }
 }

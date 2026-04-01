@@ -13,6 +13,8 @@ export class MasterDataApiError extends Error {
   }
 }
 
+type MasterDataWriteValue = string | { symbol: string; name: string };
+
 @Injectable({ providedIn: 'root' })
 export class MasterDataApiService {
   private readonly http = inject(HttpClient);
@@ -23,10 +25,11 @@ export class MasterDataApiService {
     'positions': 'positions',
   };
 
-  private buildPayload(type: MasterDataType, value: string): { name: string; symbol?: string } {
-    const trimmed = value.trim();
+  private buildPayload(type: MasterDataType, value: MasterDataWriteValue): { name: string; symbol?: string } {
+    const trimmed = typeof value === 'string' ? value.trim() : value.name.trim();
     if (type === 'tokens') {
-      return { name: trimmed, symbol: trimmed };
+      const symbol = typeof value === 'string' ? trimmed : value.symbol.trim();
+      return { name: trimmed, symbol };
     }
     return { name: trimmed };
   }
@@ -50,7 +53,7 @@ export class MasterDataApiService {
     return res[key];
   }
 
-  async create(type: MasterDataType, value: string): Promise<MasterDataEntry> {
+  async create(type: MasterDataType, value: MasterDataWriteValue): Promise<MasterDataEntry> {
     return this.handleRequest(
       firstValueFrom(
         this.http.post<MasterDataEntry>(`/api/v1/master-data/${type}`, this.buildPayload(type, value)),
@@ -58,7 +61,7 @@ export class MasterDataApiService {
     );
   }
 
-  async update(type: MasterDataType, id: string, value: string): Promise<MasterDataEntry> {
+  async update(type: MasterDataType, id: string, value: MasterDataWriteValue): Promise<MasterDataEntry> {
     return this.handleRequest(
       firstValueFrom(
         this.http.put<MasterDataEntry>(`/api/v1/master-data/${type}/${id}`, this.buildPayload(type, value)),

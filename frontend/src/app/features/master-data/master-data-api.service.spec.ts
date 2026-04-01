@@ -59,14 +59,14 @@ describe('MasterDataApiService', () => {
   });
 
   it('creates a token using name and symbol payloads', async () => {
-    const promise = service.create('tokens', 'SEI');
+    const promise = service.create('tokens', { symbol: 'SEI', name: 'Sei' });
 
     const req = httpTesting.expectOne('/api/v1/master-data/tokens');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ name: 'SEI', symbol: 'SEI' });
-    req.flush({ id: 'SEI', symbol: 'SEI', name: 'SEI' });
+    expect(req.request.body).toEqual({ name: 'Sei', symbol: 'SEI' });
+    req.flush({ id: 'SEI', symbol: 'SEI', name: 'Sei' });
 
-    await expect(promise).resolves.toEqual({ id: 'SEI', symbol: 'SEI', name: 'SEI' });
+    await expect(promise).resolves.toEqual({ id: 'SEI', symbol: 'SEI', name: 'Sei' });
   });
 
   it('updates a trade type with a name payload', async () => {

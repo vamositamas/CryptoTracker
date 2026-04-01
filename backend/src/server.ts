@@ -15,6 +15,7 @@ import masterDataRouter from './routes/master-data.routes';
 import formulasRouter from './routes/formulas.routes';
 import auditRouter from './routes/audit.routes';
 import dashboardRouter from './routes/dashboard.routes';
+import preferencesRouter from './routes/preferences.routes';
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '../data'));
 
@@ -63,6 +64,7 @@ app.use('/api/v1/formulas', formulasRouter);
 app.use('/api/v1/trades', tradesRouter);
 app.use('/api/v1/audit', auditRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/preferences', preferencesRouter);
 
 // ── Global error handler (must be last middleware, 4-param signature) ─────
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
