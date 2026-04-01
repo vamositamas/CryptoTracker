@@ -6,6 +6,7 @@ import { DashboardOverview, KpiData, MonthlyData } from './dashboard.model';
 import { KpiCardComponent } from './kpi-card/kpi-card.component';
 import { MonthlyTableComponent } from './monthly-table/monthly-table.component';
 import { MonthlyChartComponent } from './monthly-chart/monthly-chart.component';
+import { PreferencesService } from '../../core/services/preferences.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +16,7 @@ import { MonthlyChartComponent } from './monthly-chart/monthly-chart.component';
 })
 export class DashboardComponent implements OnInit {
   private readonly api = inject(DashboardApiService);
+  private readonly prefs = inject(PreferencesService);
   private readonly host = inject(ElementRef<HTMLElement>, { optional: true });
 
   private readonly weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -29,6 +31,10 @@ export class DashboardComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly yearDropdownOpen = signal(false);
+
+  tradeSplitWinColor = '#10b981';
+  tradeSplitShortColor = '#3b82f6';
+  weekdayBarColor = '#3b82f6';
 
   readonly split = computed(() => this.overview()?.split ?? {
     winTrades: 0,
@@ -136,7 +142,20 @@ export class DashboardComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    await this.prefs.load();
+    const dashboardColors = this.prefs.dashboardColors();
+    this.tradeSplitWinColor = dashboardColors.tradeSplitWin;
+    this.tradeSplitShortColor = dashboardColors.tradeSplitShort;
+    this.weekdayBarColor = dashboardColors.weekdayBar;
     await this.loadOverview();
+  }
+
+  onDashboardColorChange(): void {
+    void this.prefs.saveDashboardColors({
+      tradeSplitWin: this.tradeSplitWinColor,
+      tradeSplitShort: this.tradeSplitShortColor,
+      weekdayBar: this.weekdayBarColor,
+    });
   }
 
   async onViewModeChange(mode: 'all' | 'year'): Promise<void> {

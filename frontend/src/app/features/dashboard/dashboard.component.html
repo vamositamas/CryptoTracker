@@ -150,15 +150,31 @@
         </dl>
       </div>
 
-      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">{{ 'dashboard.sections.tradesSplit' | translate }}</h2>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 group">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide flex-1">{{ 'dashboard.sections.tradesSplit' | translate }}</h2>
+          <div class="flex items-center gap-3 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 normal-case">
+            <label class="flex items-center gap-1.5 cursor-pointer" [title]="'dashboard.sections.tradeSplitWinColorLabel' | translate">
+              <input type="color" [value]="tradeSplitWinColor"
+                     (input)="tradeSplitWinColor = $any($event.target).value; onDashboardColorChange()"
+                     class="w-5 h-5 rounded border-0 cursor-pointer p-0">
+              <span>{{ 'dashboard.sections.tradeSplitWinColorLabel' | translate }}</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer" [title]="'dashboard.sections.tradeSplitShortColorLabel' | translate">
+              <input type="color" [value]="tradeSplitShortColor"
+                     (input)="tradeSplitShortColor = $any($event.target).value; onDashboardColorChange()"
+                     class="w-5 h-5 rounded border-0 cursor-pointer p-0">
+              <span>{{ 'dashboard.sections.tradeSplitShortColorLabel' | translate }}</span>
+            </label>
+          </div>
+        </div>
         <div class="space-y-2">
           <div class="flex justify-between text-xs text-gray-500">
             <span>{{ 'dashboard.split.win' | translate }}</span>
             <span>{{ split().winTrades }}</span>
           </div>
           <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
-            <div class="h-full bg-emerald-500" [style.width.%]="split().winTrades + split().lossTrades === 0 ? 0 : (split().winTrades / (split().winTrades + split().lossTrades)) * 100"></div>
+            <div class="h-full" [style.backgroundColor]="tradeSplitWinColor" [style.width.%]="split().winTrades + split().lossTrades === 0 ? 0 : (split().winTrades / (split().winTrades + split().lossTrades)) * 100"></div>
           </div>
           <div class="flex justify-between text-xs text-gray-500">
             <span>{{ 'dashboard.split.loss' | translate }}</span>
@@ -172,7 +188,7 @@
             <span>{{ split().shortTrades }}</span>
           </div>
           <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
-            <div class="h-full bg-blue-500" [style.width.%]="split().shortTrades + split().longTrades === 0 ? 0 : (split().shortTrades / (split().shortTrades + split().longTrades)) * 100"></div>
+            <div class="h-full" [style.backgroundColor]="tradeSplitShortColor" [style.width.%]="split().shortTrades + split().longTrades === 0 ? 0 : (split().shortTrades / (split().shortTrades + split().longTrades)) * 100"></div>
           </div>
           <div class="flex justify-between text-xs text-gray-500">
             <span>{{ 'dashboard.split.long' | translate }}</span>
@@ -259,9 +275,15 @@
         }
       </div>
 
-      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">{{ 'dashboard.weekdays.title' | translate }}</h2>
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden group">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
+          <h2 class="text-lg font-semibold text-gray-900 flex-1">{{ 'dashboard.weekdays.title' | translate }}</h2>
+          <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200" [title]="'dashboard.weekdays.barColorLabel' | translate">
+            <input type="color" [value]="weekdayBarColor"
+                   (input)="weekdayBarColor = $any($event.target).value; onDashboardColorChange()"
+                   class="w-5 h-5 rounded border-0 cursor-pointer p-0">
+            <span>{{ 'dashboard.weekdays.barColorLabel' | translate }}</span>
+          </label>
         </div>
         @if (weekdayStats().length === 0) {
           <div class="px-6 py-8 text-sm text-gray-400 text-center">{{ 'dashboard.weekdays.empty' | translate }}</div>
@@ -271,7 +293,7 @@
               <div class="grid grid-cols-[120px_1fr_90px_110px] items-center gap-3 text-sm">
                 <div class="text-gray-700 font-medium">{{ row.weekday }}</div>
                 <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
-                  <div class="h-full bg-blue-500" [style.width]="weekdayBarWidth(row.tradeCount)"></div>
+                  <div class="h-full" [style.backgroundColor]="weekdayBarColor" [style.width]="weekdayBarWidth(row.tradeCount)"></div>
                 </div>
                 <div class="text-right tabular-nums text-gray-600">{{ row.tradeCount }}</div>
                 <div class="text-right tabular-nums" [class.text-emerald-600]="row.netProfit >= 0" [class.text-red-600]="row.netProfit < 0">{{ row.netProfit.toFixed(2) }}</div>

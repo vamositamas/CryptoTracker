@@ -67,7 +67,9 @@
     "sections": {
       "summary": "Összegzés",
       "tradesSplit": "Kötés megoszlás",
-      "extremes": "Szélsőértékek"
+      "extremes": "Szélsőértékek",
+      "tradeSplitWinColorLabel": "Nyerő oszlop",
+      "tradeSplitShortColorLabel": "Short oszlop"
     },
     "split": {
       "win": "Nyerő kötések",
@@ -88,7 +90,8 @@
     },
     "weekdays": {
       "title": "Hétköznap teljesítmény",
-      "empty": "Még nincs hétköznapi teljesítmény adat"
+      "empty": "Még nincs hétköznapi teljesítmény adat",
+      "barColorLabel": "Oszlop szín"
     },
     "monthly": {
       "title": "Havi teljesítmény",

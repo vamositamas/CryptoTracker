@@ -12,6 +12,11 @@ export interface UserPreferences {
     bar?: string;
     line?: string;
   };
+  dashboardColors?: {
+    tradeSplitWin?: string;
+    tradeSplitShort?: string;
+    weekdayBar?: string;
+  };
 }
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
@@ -43,6 +48,11 @@ router.put('/', async (req: Request, res: Response): Promise<void> => {
 
   const body = req.body ?? {};
   const chartColors = body.chartColors as { bar?: unknown; line?: unknown } | undefined;
+  const dashboardColors = body.dashboardColors as {
+    tradeSplitWin?: unknown;
+    tradeSplitShort?: unknown;
+    weekdayBar?: unknown;
+  } | undefined;
 
   if (chartColors !== undefined) {
     if (typeof chartColors !== 'object' || Array.isArray(chartColors)) {
@@ -59,6 +69,34 @@ router.put('/', async (req: Request, res: Response): Promise<void> => {
     }
   }
 
+  if (dashboardColors !== undefined) {
+    if (typeof dashboardColors !== 'object' || Array.isArray(dashboardColors)) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'dashboardColors must be an object' } });
+      return;
+    }
+    if (
+      dashboardColors.tradeSplitWin !== undefined
+      && (typeof dashboardColors.tradeSplitWin !== 'string' || !HEX_COLOR_RE.test(dashboardColors.tradeSplitWin))
+    ) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'dashboardColors.tradeSplitWin must be a 6-digit hex color' } });
+      return;
+    }
+    if (
+      dashboardColors.tradeSplitShort !== undefined
+      && (typeof dashboardColors.tradeSplitShort !== 'string' || !HEX_COLOR_RE.test(dashboardColors.tradeSplitShort))
+    ) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'dashboardColors.tradeSplitShort must be a 6-digit hex color' } });
+      return;
+    }
+    if (
+      dashboardColors.weekdayBar !== undefined
+      && (typeof dashboardColors.weekdayBar !== 'string' || !HEX_COLOR_RE.test(dashboardColors.weekdayBar))
+    ) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'dashboardColors.weekdayBar must be a 6-digit hex color' } });
+      return;
+    }
+  }
+
   const existing = await readPreferences(trader);
   const updated: UserPreferences = {
     ...existing,
@@ -67,6 +105,14 @@ router.put('/', async (req: Request, res: Response): Promise<void> => {
         ...existing.chartColors,
         ...(chartColors.bar !== undefined ? { bar: chartColors.bar as string } : {}),
         ...(chartColors.line !== undefined ? { line: chartColors.line as string } : {}),
+      },
+    } : {}),
+    ...(dashboardColors !== undefined ? {
+      dashboardColors: {
+        ...existing.dashboardColors,
+        ...(dashboardColors.tradeSplitWin !== undefined ? { tradeSplitWin: dashboardColors.tradeSplitWin as string } : {}),
+        ...(dashboardColors.tradeSplitShort !== undefined ? { tradeSplitShort: dashboardColors.tradeSplitShort as string } : {}),
+        ...(dashboardColors.weekdayBar !== undefined ? { weekdayBar: dashboardColors.weekdayBar as string } : {}),
       },
     } : {}),
   };

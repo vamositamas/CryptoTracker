@@ -67,7 +67,9 @@
     "sections": {
       "summary": "Summary",
       "tradesSplit": "Trade Distribution",
-      "extremes": "Extremes"
+      "extremes": "Extremes",
+      "tradeSplitWinColorLabel": "Win bar",
+      "tradeSplitShortColorLabel": "Short bar"
     },
     "split": {
       "win": "Win Trades",
@@ -88,7 +90,8 @@
     },
     "weekdays": {
       "title": "Weekday Performance",
-      "empty": "No weekday performance data yet"
+      "empty": "No weekday performance data yet",
+      "barColorLabel": "Bar color"
     },
     "monthly": {
       "title": "Monthly Performance",
