@@ -152,6 +152,34 @@ describe('TradeTableComponent', () => {
     expect((dailyProfitCells[0].textContent ?? '').replace(/\s+/g, '')).toContain('+0.00%');
   });
 
+  it('calculates daily profit percent as the sum of trade profit percentages for the day', async () => {
+    const ratioTradeA: TradeWithMeta = {
+      ...WIN_TRADE,
+      id: 'ratio-a',
+      closeDate: '2024-06-03',
+      investment: 100,
+      nettoProfit: 10,
+      profitPercent: 10,
+    };
+    const ratioTradeB: TradeWithMeta = {
+      ...WIN_TRADE,
+      id: 'ratio-b',
+      closeDate: '2024-06-03',
+      investment: 1000,
+      nettoProfit: 10,
+      profitPercent: 1,
+    };
+
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [ratioTradeA, ratioTradeB]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dailyProfitCell = fixture.nativeElement.querySelector('[data-testid="daily-profit-percent-cell"]') as HTMLTableCellElement;
+    expect((dailyProfitCell.textContent ?? '').replace(/\s+/g, '')).toContain('+11.00%');
+  });
+
   it('shows Win badge with emerald styling', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
