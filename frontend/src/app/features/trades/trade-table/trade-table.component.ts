@@ -103,7 +103,13 @@ export class TradeTableComponent implements OnInit {
     const col = this.sortCol();
     const dir = this.sortDir();
     const list = [...this.trades()];
-    if (!col) return list;
+    if (!col) {
+      return list.sort((a, b) => {
+        const byCloseDate = String(b.closeDate).localeCompare(String(a.closeDate));
+        if (byCloseDate !== 0) return byCloseDate;
+        return String(b.createdAt).localeCompare(String(a.createdAt));
+      });
+    }
     return list.sort((a, b) => {
       const av = a[col];
       const bv = b[col];

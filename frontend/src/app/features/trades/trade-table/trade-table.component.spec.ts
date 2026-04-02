@@ -197,6 +197,16 @@ describe('TradeTableComponent', () => {
     expect(row.className).toContain('bg-emerald-50');
   });
 
+  it('uses close date descending order by default', async () => {
+    const fixture = TestBed.createComponent(TradeTableComponent);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('trades', [ALT_TRADE, WIN_TRADE]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-3']);
+  });
+
   it('sorts ascending on first header click and descending on second click', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
@@ -217,10 +227,10 @@ describe('TradeTableComponent', () => {
     expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-2']);
   });
 
-  it('resets to API order on third click', async () => {
+  it('resets to default close-date-desc order on third click', async () => {
     const fixture = TestBed.createComponent(TradeTableComponent);
     fixture.componentRef.setInput('loading', false);
-    fixture.componentRef.setInput('trades', [WIN_TRADE, LOSS_TRADE]);
+    fixture.componentRef.setInput('trades', [ALT_TRADE, WIN_TRADE]);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -233,7 +243,7 @@ describe('TradeTableComponent', () => {
     profitBtn.click();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-2']);
+    expect(fixture.componentInstance.sortedTrades().map((t) => t.id)).toEqual(['trade-1', 'trade-3']);
   });
 
   it('sorts numeric columns numerically (not lexicographically)', async () => {
