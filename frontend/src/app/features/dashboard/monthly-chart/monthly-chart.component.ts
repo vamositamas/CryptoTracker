@@ -202,7 +202,6 @@ export class MonthlyChartComponent implements OnInit, AfterViewInit, OnChanges, 
           y: {
             type: 'linear',
             position: 'left',
-            min: 0,
             ticks: {
               font: { size: 11 },
               callback: v => `${v}`,
@@ -212,7 +211,6 @@ export class MonthlyChartComponent implements OnInit, AfterViewInit, OnChanges, 
           y1: {
             type: 'linear',
             position: 'right',
-            min: 0,
             ticks: {
               font: { size: 11 },
               callback: v => `${v}`,

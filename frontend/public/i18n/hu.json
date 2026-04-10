@@ -139,6 +139,16 @@
         "template": "Sablon letöltése"
       }
     },
+    "export": {
+      "success": "{{count}} kötés exportálva: {{fileName}}.",
+      "errors": {
+        "failed": "Nem sikerült exportálni a kötéseket. Próbálja újra."
+      },
+      "actions": {
+        "export": "Biztonsági mentés export",
+        "exporting": "Exportálás..."
+      }
+    },
     "filters": {
       "title": "Szűrők",
       "token": "Token",

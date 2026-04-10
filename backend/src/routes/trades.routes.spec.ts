@@ -73,6 +73,32 @@ describe('GET /', () => {
   });
 });
 
+describe('GET /export', () => {
+  beforeEach(() => {
+    vi.mocked(storageService.read).mockResolvedValue([MOCK_RAW_TRADE]);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('returns attachment headers and json payload', async () => {
+    const res = await request(app).get('/export').set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.headers['content-disposition']).toContain('attachment; filename="trades-backup-tamas-');
+    expect(res.text).toContain('"id": "trade-1"');
+  });
+
+  it('returns an empty array when trade storage does not exist', async () => {
+    vi.mocked(storageService.read).mockRejectedValue(new Error('ENOENT: no such file'));
+
+    const res = await request(app).get('/export').set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.text.trim()).toBe('[]');
+  });
+});
+
 describe('POST /', () => {
   const validBody = {
     type: 'spot',

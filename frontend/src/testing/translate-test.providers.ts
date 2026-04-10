@@ -67,6 +67,16 @@ const EN_TRANSLATIONS = {
         template: 'Download template',
       },
     },
+    export: {
+      success: 'Exported {{count}} trades to {{fileName}}.',
+      errors: {
+        failed: 'Failed to export trades. Please try again.',
+      },
+      actions: {
+        export: 'Export backup',
+        exporting: 'Exporting...',
+      },
+    },
     filters: {
       title: 'Filters',
       token: 'Token',

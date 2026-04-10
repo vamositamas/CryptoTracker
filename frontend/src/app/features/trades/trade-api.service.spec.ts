@@ -185,4 +185,20 @@ describe('TradeApiService', () => {
       await expect(promise).resolves.toEqual({ imported: 1, trades: [ENRICHED] });
     });
   });
+
+  describe('exportTrades', () => {
+    it('GETs /api/v1/trades/export and returns blob + filename', async () => {
+      const promise = service.exportTrades();
+      const req = httpTesting.expectOne('/api/v1/trades/export');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+
+      const headers = { 'content-disposition': 'attachment; filename="trades-backup-tamas-2026-04-10.json"' };
+      req.flush(new Blob(['[]'], { type: 'application/json' }), { status: 200, statusText: 'OK', headers });
+
+      const payload = await promise;
+      expect(payload.fileName).toBe('trades-backup-tamas-2026-04-10.json');
+      expect(payload.blob).toBeInstanceOf(Blob);
+    });
+  });
 });

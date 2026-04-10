@@ -115,6 +115,22 @@ function normalizeWeekday(closeDate: string): string {
   return date.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
+function normalizeTradeDirection(trade: EnrichedTrade): 'short' | 'long' {
+  const candidates = [trade.tradePosition, trade.position, trade.type];
+
+  for (const candidate of candidates) {
+    const normalized = String(candidate ?? '').trim().toLowerCase();
+    if (normalized === 'short' || normalized === 'sell' || normalized === 's') {
+      return 'short';
+    }
+    if (normalized === 'long' || normalized === 'buy' || normalized === 'l') {
+      return 'long';
+    }
+  }
+
+  return 'long';
+}
+
 function parseYearFilter(queryYear: unknown): number | null {
   if (typeof queryYear !== 'string' || queryYear.trim() === '') {
     return null;
@@ -302,8 +318,8 @@ router.get('/overview', async (req: Request, res: Response) => {
     }))
     .sort((a, b) => weekdayOrder.indexOf(a.weekday) - weekdayOrder.indexOf(b.weekday));
 
-  const shortTrades = filtered.filter((trade) => String(trade.tradePosition ?? 'long').toLowerCase() === 'short').length;
-  const longTrades = totalTrades - shortTrades;
+  const shortTrades = filtered.filter((trade) => normalizeTradeDirection(trade) === 'short').length;
+  const longTrades = filtered.filter((trade) => normalizeTradeDirection(trade) === 'long').length;
 
   const overview: DashboardOverviewResponse = {
     kpis: {

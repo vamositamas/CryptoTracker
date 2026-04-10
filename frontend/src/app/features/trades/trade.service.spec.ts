@@ -44,6 +44,7 @@ describe('TradeService', () => {
     updateTrade: ReturnType<typeof vi.fn>;
     deleteTrade: ReturnType<typeof vi.fn>;
     importTrades: ReturnType<typeof vi.fn>;
+    exportTrades: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -53,6 +54,10 @@ describe('TradeService', () => {
       updateTrade: vi.fn().mockResolvedValue(BASE_TRADE),
       deleteTrade: vi.fn().mockResolvedValue(undefined),
       importTrades: vi.fn().mockResolvedValue({ imported: 1, trades: [BASE_TRADE] }),
+      exportTrades: vi.fn().mockResolvedValue({
+        blob: new Blob(['[]'], { type: 'application/json' }),
+        fileName: 'trades-backup.json',
+      }),
     };
 
     TestBed.configureTestingModule({
@@ -191,6 +196,16 @@ describe('TradeService', () => {
       expect(apiMock.importTrades).toHaveBeenCalledWith([DTO]);
       expect(service.trades()[0].id).toBe('trade-1');
       expect(service.trades()[0].flashNew).toBe(true);
+    });
+  });
+
+  describe('exportTrades', () => {
+    it('returns file payload from API', async () => {
+      const result = await service.exportTrades();
+
+      expect(apiMock.exportTrades).toHaveBeenCalledTimes(1);
+      expect(result.fileName).toBe('trades-backup.json');
+      expect(result.blob).toBeInstanceOf(Blob);
     });
   });
 });

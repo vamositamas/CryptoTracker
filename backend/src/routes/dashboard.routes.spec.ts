@@ -98,6 +98,34 @@ const MOCK_RAW_TRADE_2025_WIN = {
   nettoProfit: 800,
 };
 
+const MOCK_RAW_SHORT_BY_POSITION = {
+  id: 'trade-6',
+  createdAt: '2024-04-05T00:00:00.000Z',
+  holdingDays: 3,
+  type: 'spot',
+  position: 'short',
+  leverage: 1,
+  volume: 1,
+  buyPrice: 100,
+  sellPrice: 90,
+  closeDate: '2024-04-08',
+  nettoProfit: 10,
+};
+
+const MOCK_RAW_LONG_BY_POSITION = {
+  id: 'trade-7',
+  createdAt: '2024-04-12T00:00:00.000Z',
+  holdingDays: 4,
+  type: 'spot',
+  position: 'long',
+  leverage: 1,
+  volume: 1,
+  buyPrice: 100,
+  sellPrice: 110,
+  closeDate: '2024-04-16',
+  nettoProfit: 10,
+};
+
 describe('GET /kpis', () => {
   afterEach(() => vi.restoreAllMocks());
 
@@ -250,6 +278,20 @@ describe('GET /overview', () => {
     expect(res.body.monthly.length).toBe(2);
     expect(Array.isArray(res.body.tokenStats)).toBe(true);
     expect(Array.isArray(res.body.weekdayStats)).toBe(true);
+  });
+
+  it('calculates split short and long trades from tradePosition with position fallback', async () => {
+    vi.mocked(storageService.read).mockResolvedValue([
+      { ...MOCK_RAW_SHORT_BY_POSITION, tradePosition: 'short' },
+      MOCK_RAW_LONG_BY_POSITION,
+      { ...MOCK_RAW_LONG_BY_POSITION, id: 'trade-8', tradePosition: 'LONG' },
+    ]);
+
+    const res = await request(app).get('/overview').set('x-trader-username', 'tamas');
+
+    expect(res.status).toBe(200);
+    expect(res.body.split.shortTrades).toBe(1);
+    expect(res.body.split.longTrades).toBe(2);
   });
 
   it('filters overview data by selected year', async () => {

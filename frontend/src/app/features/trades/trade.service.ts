@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { CreateTradeDto, EnrichedTrade } from '../../core/models/trade.model';
+import { CreateTradeDto, EnrichedTrade, TradeExportResponse } from '../../core/models/trade.model';
 import { TradeApiService } from './trade-api.service';
 
 /** Adds a transient UI flag for the row-flash animation. Not stored or sent to the API. */
@@ -132,6 +132,18 @@ export class TradeService {
       return response.imported;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'trades.import.errors.failed';
+      this.error.set(message);
+      throw err;
+    }
+  }
+
+  async exportTrades(): Promise<TradeExportResponse> {
+    this.error.set(null);
+
+    try {
+      return await this.api.exportTrades();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'trades.export.errors.failed';
       this.error.set(message);
       throw err;
     }

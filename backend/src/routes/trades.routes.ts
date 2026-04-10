@@ -117,6 +117,18 @@ router.get('/', requirePermission('trades:read'), async (req: Request, res: Resp
   res.json({ trades: enriched, total: enriched.length });
 });
 
+// --- GET /api/v1/trades/export ---
+router.get('/export', requirePermission('trades:read'), async (req: Request, res: Response) => {
+  const trader = req.user!.username;
+  const rawTrades = await readTrades(trader);
+  const dateStamp = new Date().toISOString().slice(0, 10);
+  const fileName = `trades-backup-${trader}-${dateStamp}.json`;
+
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+  res.status(200).send(JSON.stringify(rawTrades, null, 2));
+});
+
 // --- POST /api/v1/trades ---
 router.post('/', requirePermission('trades:write'), auditMiddleware, async (req: Request, res: Response) => {
   const trader = req.user!.username;

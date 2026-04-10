@@ -24,6 +24,9 @@ export class TradesComponent implements OnInit {
   readonly importSuccess = signal<{ count: number; fileName: string } | null>(null);
   readonly importError = signal<string | null>(null);
   readonly importing = signal(false);
+  readonly exportSuccess = signal<{ count: number; fileName: string } | null>(null);
+  readonly exportError = signal<string | null>(null);
+  readonly exporting = signal(false);
   readonly filterState = signal<FilterState>({
     positions: [],
     tradePosition: '',
@@ -35,6 +38,7 @@ export class TradesComponent implements OnInit {
 
   private deleteToastTimer: ReturnType<typeof setTimeout> | null = null;
   private importToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private exportToastTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly today = new Date().toISOString().split('T')[0];
 
@@ -220,6 +224,40 @@ export class TradesComponent implements OnInit {
 
   onDownloadTemplate(): void {
     downloadTradeImportTemplate();
+  }
+
+  async onExportTrades(): Promise<void> {
+    this.exporting.set(true);
+    this.exportSuccess.set(null);
+    this.exportError.set(null);
+
+    try {
+      const payload = await this.tradeService.exportTrades();
+      const url = URL.createObjectURL(payload.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = payload.fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      this.exportSuccess.set({ count: this.trades().length, fileName: payload.fileName });
+      if (this.exportToastTimer) {
+        clearTimeout(this.exportToastTimer);
+      }
+      this.exportToastTimer = setTimeout(() => {
+        this.exportSuccess.set(null);
+      }, 5000);
+    } catch (err) {
+      this.exportError.set(err instanceof Error ? err.message : 'trades.export.errors.failed');
+      if (this.exportToastTimer) {
+        clearTimeout(this.exportToastTimer);
+      }
+      this.exportToastTimer = setTimeout(() => {
+        this.exportError.set(null);
+      }, 5000);
+    } finally {
+      this.exporting.set(false);
+    }
   }
 
   @HostListener('document:keydown.n', ['$event'])
